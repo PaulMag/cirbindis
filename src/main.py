@@ -119,3 +119,29 @@ def rotate(data, angle):
     coords_out = (rotation_matrix * coords_in.transpose()).transpose()
     data[:, 0:3] = coords_out
     return data
+
+
+if __name__ == "__main__":
+
+    radius_star = 0.3
+    radius_in = 0.5
+    radius_out = 3.0
+    filename = "data_cropped.p"
+
+    data = load(filename, method="pickle", \
+        radius_in=radius_in, radius_out=radius_out)
+
+    import matplotlib.pyplot as plt
+    plt.plot(
+        data[::1, 0],
+        data[::1, 1],
+        "r+",
+    )
+    plt.show()
+    data = rotate(data, 2*np.pi * 10./360)
+    plt.plot(
+        data[::1, 0],
+        data[::1, 1],
+        "r+",
+    )
+    plt.show()
