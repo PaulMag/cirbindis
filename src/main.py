@@ -98,23 +98,34 @@ def writeto(data, filename, method="pickle", separator=" "):
     print "Writing took %f seconds." % (t_end - t_start)
 
 
-def rotate(data, angle):
-    """Rotate entire dataset by an angle.
-
-    Currently rotation is around z-axis only.
-    TODO: Support rotation around any axis.
+def rotate(data, angle_x=0, angle_y=0, angle_z=0):
+    """Rotate entire dataset by an angle around any axis.
 
     data: (float, array) The dataset to be rotated. Array of shape (N, 4), where N is the number of datapoints.
-    angle: (float) Angle to rotate around z-axis, in unit of radians.
+    angle_x: (float) Angle to rotate around x-axis, in unit of radians.
+    angle_y: (float) Angle to rotate around y-axis, in unit of radians.
+    angle_z: (float) Angle to rotate around z-axis, in unit of radians.
 
     return: (float, array) The input data with coordinates rotated.
     """
 
-    rotation_matrix = np.matrix([
-        [np.cos(angle), -np.sin(angle), 0],
-        [np.sin(angle),  np.cos(angle), 0],
-        [            0,              0, 1],
+    R_x = np.matrix([
+        [             1,                0,                0],
+        [             0,  np.cos(angle_x), -np.sin(angle_x)],
+        [             0,  np.sin(angle_x),  np.cos(angle_x)],
     ])
+    R_y = np.matrix([
+        [ np.cos(angle_y),              0,  np.sin(angle_y)],
+        [               0,              1,                0],
+        [-np.sin(angle_y),              0,  np.cos(angle_y)],
+    ])
+    R_z = np.matrix([
+        [ np.cos(angle_z), -np.sin(angle_z),              0],
+        [ np.sin(angle_z),  np.cos(angle_z),              0],
+        [               0,                0,              1],
+    ])
+    rotation_matrix = R_z * R_y * R_x
+
     coords_in = data[:, 0:3]
     coords_out = (rotation_matrix * coords_in.transpose()).transpose()
     data[:, 0:3] = coords_out
@@ -126,7 +137,7 @@ if __name__ == "__main__":
     radius_star = 0.3
     radius_in = 0.5
     radius_out = 3.0
-    filename = "data_cropped.p"
+    filename = "../data/data_cropped.p"
 
     data = load(filename, method="pickle", \
         radius_in=radius_in, radius_out=radius_out)
@@ -138,7 +149,7 @@ if __name__ == "__main__":
         "r+",
     )
     plt.show()
-    data = rotate(data, 2*np.pi * 10./360)
+    data = rotate(data, angle_x=2*np.pi * 25./360)
     plt.plot(
         data[::1, 0],
         data[::1, 1],
