@@ -96,3 +96,26 @@ def writeto(data, filename, method="pickle", separator=" "):
     outfile.close()
     t_end = time.time()  # End of timer.
     print "Writing took %f seconds." % (t_end - t_start)
+
+
+def rotate(data, angle):
+    """Rotate entire dataset by an angle.
+
+    Currently rotation is around z-axis only.
+    TODO: Support rotation around any axis.
+
+    data: (float, array) The dataset to be rotated. Array of shape (N, 4), where N is the number of datapoints.
+    angle: (float) Angle to rotate around z-axis, in unit of radians.
+
+    return: (float, array) The input data with coordinates rotated.
+    """
+
+    rotation_matrix = np.matrix([
+        [np.cos(angle), -np.sin(angle), 0],
+        [np.sin(angle),  np.cos(angle), 0],
+        [            0,              0, 1],
+    ])
+    coords_in = data[:, 0:3]
+    coords_out = (rotation_matrix * coords_in.transpose()).transpose()
+    data[:, 0:3] = coords_out
+    return data
