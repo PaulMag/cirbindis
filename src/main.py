@@ -98,16 +98,30 @@ def writeto(data, filename, method="pickle", separator=" "):
     print "Writing took %f seconds." % (t_end - t_start)
 
 
-def rotate(data, angle_x=0, angle_y=0, angle_z=0):
+def rotate(data, angle_x=0, angle_y=0, angle_z=0, unit="deg"):
     """Rotate entire dataset by an angle around any axis.
 
     data: (float, array) The dataset to be rotated. Array of shape (N, 4), where N is the number of datapoints.
-    angle_x: (float) Angle to rotate around x-axis, in unit of radians.
-    angle_y: (float) Angle to rotate around y-axis, in unit of radians.
-    angle_z: (float) Angle to rotate around z-axis, in unit of radians.
+    angle_x: (float) Angle to rotate around x-axis (roll).
+    angle_y: (float) Angle to rotate around y-axis (pitch).
+    angle_z: (float) Angle to rotate around z-axis (yaw).
+    unit: (string) What unit angles are given in.
+        'rad', 'deg', 'arcmin' or 'arcsec'.
 
     return: (float, array) The input data with coordinates rotated.
     """
+
+    if unit == "rad":
+        factor = 1.
+    elif unit == "deg":
+        factor = np.pi / 180.
+    elif unit == "arcmin":
+        factor = np.pi / 180. * 60
+    elif unit == "arcsec":
+        factor = np.pi / 180. * 3600
+    angle_x *= factor
+    angle_y *= factor
+    angle_z *= factor
 
     R_x = np.matrix([
         [             1,                0,                0],
@@ -149,7 +163,7 @@ if __name__ == "__main__":
         "r+",
     )
     plt.show()
-    data = rotate(data, angle_x=2*np.pi * 25./360)
+    data = rotate(data, angle_x=25)
     plt.plot(
         data[::1, 0],
         data[::1, 1],
