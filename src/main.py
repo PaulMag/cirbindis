@@ -5,6 +5,8 @@ import cPickle as pickle
     # faster than reading and writing ASCII tables.
 import time
     # Used to time parts of code to look for bottlenecks.
+import scipy.interpolate
+import matplotlib.pyplot as plt
 
 
 def load(
@@ -189,6 +191,41 @@ def add_3d_points(data, H, n_layers=None, dz=None, thickness=None):
     return np.vstack((data, data_over, data_under))
 
 
+def points_to_image(data):
+    """Convert a set of datapoints into an image through interpolation.
+
+    TODO: Only makes 2D image at the moment. Extend to 3D (not difficult,
+    but resource heavy).
+
+    TODO: Only convert a certain slice of the dataset, to limit computation
+    time and memory used.
+
+    TODO: Since the coordinates are not included in the resulting image they
+    should also be returned somehow as metadata to the image.
+
+    data: (float, array) The dataset to be rotated. Array of shape (N, 4),
+        where N is the number of datapoints.
+
+    return: (float, array) Array (image) of shape (n, n) of the density map.
+    """
+
+    N = data.shape[0]
+    n = round(np.sqrt(N) * 4)
+        # Resulting image will use same amount of memory as the datapoints.
+
+    grid_x, grid_y = np.mgrid[
+        - radius_out : radius_out : n*1j,
+        - radius_out : radius_out : n*1j,
+    ]
+    grid_density = scipy.interpolate.griddata(
+        data[:, 0:2],
+        data[:, 3],
+        (grid_x, grid_y),
+        method='linear',
+    )
+    return grid_density
+
+
 
 if __name__ == "__main__":
 
@@ -200,7 +237,6 @@ if __name__ == "__main__":
     data = load(filename, method="pickle", \
         radius_in=radius_in, radius_out=radius_out)
 
-    import matplotlib.pyplot as plt
     plt.plot(
         data[::1, 0],
         data[::1, 1],
