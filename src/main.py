@@ -101,7 +101,8 @@ def writeto(data, filename, method="pickle", separator=" "):
 def rotate(data, angle_x=0, angle_y=0, angle_z=0, unit="deg"):
     """Rotate entire dataset by an angle around any axis.
 
-    data: (float, array) The dataset to be rotated. Array of shape (N, 4), where N is the number of datapoints.
+    data: (float, array) The dataset to be rotated. Array of shape (N, 4),
+        where N is the number of datapoints.
     angle_x: (float) Angle to rotate around x-axis (roll).
     angle_y: (float) Angle to rotate around y-axis (pitch).
     angle_z: (float) Angle to rotate around z-axis (yaw).
@@ -146,12 +147,55 @@ def rotate(data, angle_x=0, angle_y=0, angle_z=0, unit="deg"):
     return data
 
 
+def add_3d_points(data, H, n_layers=None, dz=None, thickness=None):
+    """Expands a 2D-disk into 3rd (z) dimension assuming a simple model.
+
+    z-coordinate must be 0 for every point in data. If the dataset is already
+    3-dimensional then you NEED not and MUST not use this method. You must
+    use this method BEFORE any rotation around x- or y-axis, NOT AFTER.
+    Rotations around z-axis does not matter, as they do not alter z-data.
+
+    Note that this method multiplies the size of the dataset provided, so
+    the returned data can be very large.
+
+    data: (float, array) The dataset to be rotated. Array of shape (N, 4),
+        where N is the number of datapoints.
+    H: (float) A physical parameter. We assume it to be a constant.
+    n_layers: (int) How many data layers to add to EACH side of the disk.
+        The total number of layers in z-direction becomes 2*n_layers+1.
+    dz: (float) Distance between each layer.
+    thickness: (float) Total thickness of disk to provide data for. This
+        argument can be given instead of either n_layers or dz. If both
+        n_layers and dz is provided then this is ignored.
+
+    return: (float, array) The dataset with 2*n_layers*N more points added.
+    """
+
+    if n_layers is None:
+        n_layers = int(round(0.5 * thickness / dz))
+    elif dz is None:
+        dz = 0.5 * thickness /n_layers
+
+    N = data.shape[0]
+    data_over = np.zeros((N*n_layers, 4))
+
+    for k in xrange(1, n_layers+1):
+        data_over[(k-1)*N : k*N, 0:2] = data[:, 0:2]
+        data_over[(k-1)*N : k*N, 2] = k * dz
+        data_over[(k-1)*N : k*N, 3] = data[:, 3] * np.exp(- k * dz / H)
+    data_under = data_over.copy()
+    data_under[:, 2] *= -1
+
+    return np.vstack((data, data_over, data_under))
+
+
+
 if __name__ == "__main__":
 
     radius_star = 0.3
     radius_in = 0.5
     radius_out = 3.0
-    filename = "../data/data_cropped.p"
+    filename = "../data/data_cropped_3d.p"
 
     data = load(filename, method="pickle", \
         radius_in=radius_in, radius_out=radius_out)
