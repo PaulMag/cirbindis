@@ -88,7 +88,7 @@ def writeto(data, filename, method="pickle", separator=" "):
     elif method == "ascii":
         outfile = open(filename, "w")
         for line in data:
-            outfile.write("%f%s%f%s%f\n" % (
+            outfile.write("%f%s%f%s%f%s%f\n" % (
                 line[0], separator,
                 line[1], separator,
                 line[2], separator,
@@ -213,14 +213,15 @@ def points_to_image(data):
     n = round(np.sqrt(N) * 4)
         # Resulting image will use same amount of memory as the datapoints.
 
-    grid_x, grid_y = np.mgrid[
+    grid_x, grid_y, grid_z = np.mgrid[
         - radius_out : radius_out : n*1j,
         - radius_out : radius_out : n*1j,
+        -.5*thickness:.5*thickness: (2*n_layers+1)*1j,
     ]
     grid_density = scipy.interpolate.griddata(
-        data[:, 0:2],
+        data[:, 0:3],
         data[:, 3],
-        (grid_x, grid_y),
+        (grid_x, grid_y, grid_z),
         method='linear',
     )
     return grid_density
@@ -228,25 +229,39 @@ def points_to_image(data):
 
 
 if __name__ == "__main__":
+    """Everything under this should just be considered a test block for now."""
 
-    radius_star = 0.3
-    radius_in = 0.5
-    radius_out = 3.0
-    filename = "../data/data_cropped_3d.p"
+    radius_star = 0.01
+    radius_in = 0.01
+    radius_out = 0.03
+    n_layers = 1
+    thickness = 0.2
+    # filename = "../data/data_tiny_3d.p"
+    filename = "../data/data_micro_3d.p"
 
     data = load(filename, method="pickle", \
         radius_in=radius_in, radius_out=radius_out)
+    # writeto(data, "../data/data_micro.tab", method="ascii")
+    # data = add_3d_points(data, H=1, n_layers=1, dz=0.1)
+    # writeto(data, "../data/data_micro_3d.p")
 
-    plt.plot(
-        data[::1, 0],
-        data[::1, 1],
-        "r+",
-    )
+    img = points_to_image(data)
+    print img.shape
+    plt.imshow(img[:, :, 0], interpolation="nearest", origin="lower")
     plt.show()
-    data = rotate(data, angle_x=25)
-    plt.plot(
-        data[::1, 0],
-        data[::1, 1],
-        "r+",
-    )
-    plt.show()
+
+    import sys; sys.exit(0)
+
+    # plt.plot(
+        # data[::1, 0],
+        # data[::1, 1],
+        # "r+",
+    # )
+    # plt.show()
+    # data = rotate(data, angle_x=25)
+    # plt.plot(
+        # data[::1, 0],
+        # data[::1, 1],
+        # "r+",
+    # )
+    # plt.show()
