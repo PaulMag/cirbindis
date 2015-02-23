@@ -227,6 +227,16 @@ def points_to_image(data):
     return grid_density
 
 
+def get_sylinder(data):
+    """TODO: Write docstring."""
+    mask = (
+        (data[:, 0] <= -radius_in) *
+        (np.linalg.norm(data[:, 1:3], axis=1) <= radius_star)
+    )
+    data_sylinder = data[np.where(mask)]
+    return data_sylinder
+
+
 
 if __name__ == "__main__":
     """Everything under this should just be considered a test block for now."""
@@ -235,22 +245,23 @@ if __name__ == "__main__":
     radius_in = 0.01
     radius_out = 0.03
     n_layers = 1
-    thickness = 0.2
+    thickness = 0.002
     # filename = "../data/data_tiny_3d.p"
     filename = "../data/data_micro_3d.p"
 
     data = load(filename, method="pickle", \
         radius_in=radius_in, radius_out=radius_out)
-    # writeto(data, "../data/data_micro.tab", method="ascii")
-    # data = add_3d_points(data, H=1, n_layers=1, dz=0.1)
+    print data
+    # data = add_3d_points(data, H=1, n_layers=n_layers, thickness=thickness)
     # writeto(data, "../data/data_micro_3d.p")
+    data = get_sylinder(data)
 
-    img = points_to_image(data)
-    print img.shape
-    plt.imshow(img[:, :, 0], interpolation="nearest", origin="lower")
-    plt.show()
+    # img = points_to_image(data)
+    # plt.imshow(img[:, :, 1], interpolation="nearest", origin="lower")
+    # plt.show()
 
-    import sys; sys.exit(0)
+    # import sys; sys.exit(0)
+
 
     # plt.plot(
         # data[::1, 0],
@@ -258,7 +269,7 @@ if __name__ == "__main__":
         # "r+",
     # )
     # plt.show()
-    # data = rotate(data, angle_x=25)
+    # data = rotate(data, angle_z=25)
     # plt.plot(
         # data[::1, 0],
         # data[::1, 1],
