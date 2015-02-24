@@ -191,37 +191,48 @@ def add_3d_points(data, H, n_layers=None, dz=None, thickness=None):
     return np.vstack((data, data_over, data_under))
 
 
-def points_to_image(data):
-    """Convert a set of datapoints into an image through interpolation.
-
-    TODO: Only makes 2D image at the moment. Extend to 3D (not difficult,
-    but resource heavy).
-
-    TODO: Only convert a certain slice of the dataset, to limit computation
-    time and memory used.
+def points_to_image(data, sylinder=True):
+    """Convert a set of datapoints into a datacube through linear interpolation.
 
     TODO: Since the coordinates are not included in the resulting image they
     should also be returned somehow as metadata to the image.
 
     data: (float, array) The dataset to be rotated. Array of shape (N, 4),
         where N is the number of datapoints.
+    sylinder: (bool) If True, will only convert the relevant sylinder. If
+        False, will convert the entire input dataset.
 
-    return: (float, array) Array (image) of shape (n, n) of the density map.
+    return: (float, array) Array (datacube) of shape (n, n) of the density map.
     """
 
     N = data.shape[0]
-    n = round(np.sqrt(N) * 4)
-        # Resulting image will use same amount of memory as the datapoints.
 
-    grid_x, grid_y, grid_z = np.mgrid[
-        - radius_out : radius_out : n*1j,
-        - radius_out : radius_out : n*1j,
-        -.5*thickness:.5*thickness: (2*n_layers+1)*1j,
-    ]
+    if sylinder:
+        n_x = round(N * (radius_out-radius_in) / (2*radius_star) / n_layers)
+        # y = round(N * (2*radius_star) / (radius_out-radius_in) / n_layers)
+        n_y = 3  # Or the datacube gets too big! :(
+        grid_x, grid_y, grid_z = np.mgrid[
+            - radius_out  : radius_in   : n_x*1j,
+            - radius_star : radius_star : n_y*1j,
+            - radius_star : radius_star : n_y*1j,
+        ]
+    else:
+        # This is not really needed. Maybe for informative plots for the user.
+        n = round(np.sqrt(N) * 4)
+        grid_x, grid_y, grid_z = np.mgrid[
+            - radius_out : radius_out : n*1j,
+            - radius_out : radius_out : n*1j,
+            -.5*thickness:.5*thickness: (2*n_layers+1)*1j,
+        ]
+        # grid_x, grid_y, grid_z = np.mgrid[
+            # data[:, 0].min() : data[:, 0].max() : n*1j,
+            # data[:, 1].min() : data[:, 1].max() : n*1j,
+            # data[:, 2].min() : data[:, 2].max():  n*1j,
     grid_density = scipy.interpolate.griddata(
         data[:, 0:3],
         data[:, 3],
         (grid_x, grid_y, grid_z),
+        fill_value=0,
         method='linear',
     )
     return grid_density
@@ -251,13 +262,13 @@ if __name__ == "__main__":
 
     data = load(filename, method="pickle", \
         radius_in=radius_in, radius_out=radius_out)
-    print data
     # data = add_3d_points(data, H=1, n_layers=n_layers, thickness=thickness)
     # writeto(data, "../data/data_micro_3d.p")
     data = get_sylinder(data)
 
     # img = points_to_image(data)
     # plt.imshow(img[:, :, 1], interpolation="nearest", origin="lower")
+    # plt.colorbar()
     # plt.show()
 
     # import sys; sys.exit(0)
