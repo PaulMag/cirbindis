@@ -1,3 +1,4 @@
+import sys
 import numpy as np
     #  Numerical Python. For performing computations on arrays/matrices fast.
 import cPickle as pickle
@@ -208,8 +209,9 @@ def points_to_image(data, sylinder=True):
     N = data.shape[0]
 
     if sylinder:
-        n_x = round(N * (radius_out-radius_in) / (2*radius_star) / n_layers)
+        # n_x = round(N / ((radius_out-radius_in) / (2*radius_star*n_layers)))
         # y = round(N * (2*radius_star) / (radius_out-radius_in) / n_layers)
+        n_x = 7
         n_y = 3  # Or the datacube gets too big! :(
         grid_x, grid_y, grid_z = np.mgrid[
             - radius_in   : - radius_out: n_x*1j,
@@ -228,14 +230,14 @@ def points_to_image(data, sylinder=True):
             # data[:, 0].min() : data[:, 0].max() : n*1j,
             # data[:, 1].min() : data[:, 1].max() : n*1j,
             # data[:, 2].min() : data[:, 2].max():  n*1j,
-    grid_density = scipy.interpolate.griddata(
+    datacube = scipy.interpolate.griddata(
         data[:, 0:3],
         data[:, 3],
         (grid_x, grid_y, grid_z),
         fill_value=0,
         method='linear',
     )
-    return grid_density
+    return datacube
 
 
 def get_sylinder(data):
@@ -255,43 +257,77 @@ def integrate(datacube):
     dr = (radius_out - radius_in) / n
 
     intensity = 1.  # Or whatever the full intensity of the star is.
+    kappa = 1
 
     for i in xrange(n):
-        tau = datacube[i, :, :].sum() * dr
+        tau = kappa * datacube[i, :, :].sum() * dr
         intensity *= np.exp(-tau)
 
     return intensity
 
 
+def make_lightcurve(data, n_steps=None, dtheta=None, theta=None, unit="deg"):
+    """TODO: Write docstring."""
+
+    if n_steps is None:
+        n_steps = int(round(float(theta) / dtheta))
+    elif dtheta is None:
+        dtheta = float(theta) / n_steps
+
+    angles = np.linspace(0, theta-dtheta, n_steps)
+    lightcurve = np.zeros(n_steps)
+
+    for i, angle in enumerate(angles):
+        print "%f / %f" % (angle, theta)
+        lightcurve[i] = integrate(points_to_image(get_sylinder(rotate(
+            data, angle_z=angle, unit=unit
+        ))))
+    print "%f / %f" % (theta, theta)
+
+    plt.plot(angles, lightcurve)
+    plt.show()
+
 
 if __name__ == "__main__":
     """Everything under this should just be considered a test block for now."""
 
-    radius_star = 0.01
-    radius_in = 0.01
-    radius_out = 0.03
+    radius_star = 0.05
+    radius_in = 0.5
+    radius_out = 3.0
     n_layers = 1
     thickness = 0.002
     # filename = "../data/data_tiny_3d.p"
-    filename = "../data/data_micro_3d.p"
+    filename = "../data/data_cropped.p"
 
     data = load(filename, method="pickle", \
         radius_in=radius_in, radius_out=radius_out)
-    # data = add_3d_points(data, H=1, n_layers=n_layers, thickness=thickness)
+    data = add_3d_points(data, H=1, n_layers=n_layers, thickness=thickness)
+
+    # make_lightcurve(data, theta=360, n_steps=360)
+
     # writeto(data, "../data/data_micro_3d.p")
     data = get_sylinder(data)
+    print data.shape
 
+    t_start = time.time()
     img = points_to_image(data)
-    print integrate(img)
-    # plt.imshow(
-        # img[:, :, 1],
-        # extent=[-radius_star, +radius_star, -radius_out, -radius_in],
-        # interpolation="nearest",
-        # origin="lower",)
-    # plt.colorbar()
-    # plt.show()
+    t_end = time.time()
+    print "Converting to datacube took %f seconds." % (t_end - t_start)
 
-    # import sys; sys.exit(0)
+    t_start = time.time()
+    print integrate(img)
+    t_end = time.time()
+    print "Integration of sylinder took %f seconds." % (t_end - t_start)
+
+    plt.imshow(
+        img[:, :, 1],
+        extent=[-radius_star, +radius_star, -radius_out, -radius_in],
+        interpolation="nearest",
+        origin="lower",)
+    plt.colorbar()
+    plt.show()
+
+    # sys.exit(0)
 
 
     # plt.plot(
