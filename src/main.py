@@ -212,7 +212,7 @@ def points_to_image(data, sylinder=True):
         # y = round(N * (2*radius_star) / (radius_out-radius_in) / n_layers)
         n_y = 3  # Or the datacube gets too big! :(
         grid_x, grid_y, grid_z = np.mgrid[
-            - radius_out  : radius_in   : n_x*1j,
+            - radius_in   : - radius_out: n_x*1j,
             - radius_star : radius_star : n_y*1j,
             - radius_star : radius_star : n_y*1j,
         ]
@@ -248,6 +248,21 @@ def get_sylinder(data):
     return data_sylinder
 
 
+def integrate(datacube):
+    """TODO: Write docstring."""
+
+    n = datacube.shape[0]  # Assume sylinder is oriented in x-direction.
+    dr = (radius_out - radius_in) / n
+
+    intensity = 1.  # Or whatever the full intensity of the star is.
+
+    for i in xrange(n):
+        tau = datacube[i, :, :].sum() * dr
+        intensity *= np.exp(-tau)
+
+    return intensity
+
+
 
 if __name__ == "__main__":
     """Everything under this should just be considered a test block for now."""
@@ -266,8 +281,13 @@ if __name__ == "__main__":
     # writeto(data, "../data/data_micro_3d.p")
     data = get_sylinder(data)
 
-    # img = points_to_image(data)
-    # plt.imshow(img[:, :, 1], interpolation="nearest", origin="lower")
+    img = points_to_image(data)
+    print integrate(img)
+    # plt.imshow(
+        # img[:, :, 1],
+        # extent=[-radius_star, +radius_star, -radius_out, -radius_in],
+        # interpolation="nearest",
+        # origin="lower",)
     # plt.colorbar()
     # plt.show()
 
