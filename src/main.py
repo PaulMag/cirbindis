@@ -268,21 +268,20 @@ def space_sylinder(data, n_steps=None, dr=None):
             (data[:, 0] <= radiuses[i+1])
         )
         densities[i] = data[np.where(mask), 3].mean()
-        print radiuses[i], data[np.where(mask), 3].mean()
-    return densities, radiuses[:~0]
+    return densities
 
 
-def integrate(datacube):
+def integrate(densities):
     """TODO: Write docstring."""
 
-    n = datacube.shape[0]  # Assume sylinder is oriented in x-direction.
-    dr = (radius_out - radius_in) / n
+    n_steps = densities.shape[0]  # Assume sylinder is oriented in x-direction.
+    dr = (radius_out - radius_in) / n_steps
 
     intensity = 1.  # Or whatever the full intensity of the star is.
-    kappa = 1
+    kappa = 1  #TODO Should be defined as a constant outside this function.
 
-    for i in xrange(n):
-        tau = kappa * datacube[i, :, :].sum() * dr
+    for i in xrange(n_steps):
+        tau = kappa * densities[i] * dr
         intensity *= np.exp(-tau)
 
     return intensity
@@ -301,9 +300,10 @@ def make_lightcurve(data, n_steps=None, dtheta=None, theta=None, unit="deg"):
 
     for i, angle in enumerate(angles):
         print "%f / %f" % (angle, theta)
-        lightcurve[i] = integrate(points_to_image(get_sylinder(rotate(
-            data, angle_z=angle, unit=unit
-        ))))
+        lightcurve[i] = integrate(space_sylinder(
+            get_sylinder(rotate(data, angle_z=angle, unit=unit)),
+            n_steps=n_steps,
+        ))
     print "%f / %f" % (theta, theta)
 
     plt.plot(angles, lightcurve)
@@ -325,15 +325,9 @@ if __name__ == "__main__":
         radius_in=radius_in, radius_out=radius_out)
     data = add_3d_points(data, H=1, n_layers=n_layers, thickness=thickness)
 
-    # make_lightcurve(data, theta=360, n_steps=360)
+    make_lightcurve(data, theta=360, n_steps=360)
 
     # writeto(data, "../data/data_micro_3d.p")
-    data = get_sylinder(data)
-    sylinder, radiuses = space_sylinder(data, n_steps=100)
-
-    plt.plot(radiuses, sylinder)
-    plt.show()
-
 
     # plt.plot(
         # data[::1, 0],
