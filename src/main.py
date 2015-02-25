@@ -268,10 +268,9 @@ def space_sylinder(data, n_steps=None, dr=None):
             (data[:, 0] <= radiuses[i+1])
         )
         if data[np.where(mask), 3].size == 0:
-            densities[i] = 0
             print "Warning: No stars in bin (%g, %g]. Density set to 0." \
-                (densities[i], densities[i+1])
-        elif:
+                % (densities[i], densities[i+1])
+        else:
             densities[i] = data[np.where(mask), 3].mean()
     return densities
 
