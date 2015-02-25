@@ -267,7 +267,12 @@ def space_sylinder(data, n_steps=None, dr=None):
             (data[:, 0] >  radiuses[i]) *
             (data[:, 0] <= radiuses[i+1])
         )
-        densities[i] = data[np.where(mask), 3].mean()
+        if data[np.where(mask), 3].size == 0:
+            densities[i] = 0
+            print "Warning: No stars in bin (%g, %g]. Density set to 0." \
+                (densities[i], densities[i+1])
+        elif:
+            densities[i] = data[np.where(mask), 3].mean()
     return densities
 
 
@@ -287,22 +292,23 @@ def integrate(densities):
     return intensity
 
 
-def make_lightcurve(data, n_steps=None, dtheta=None, theta=None, unit="deg"):
+def make_lightcurve(data, n_angle=None, dtheta=None, theta=None, unit="deg", n_radius=None, dr=None):
     """TODO: Write docstring."""
 
-    if n_steps is None:
-        n_steps = int(round(float(theta) / dtheta))
+    if n_angle is None:
+        n_angle = int(round(float(theta) / dtheta))
     elif dtheta is None:
-        dtheta = float(theta) / n_steps
+        dtheta = float(theta) / n_angle
 
-    angles = np.linspace(0, theta-dtheta, n_steps)
-    lightcurve = np.zeros(n_steps)
+    angles = np.linspace(0, theta-dtheta, n_angle)
+    lightcurve = np.zeros(n_angle)
 
     for i, angle in enumerate(angles):
         print "%f / %f" % (angle, theta)
         lightcurve[i] = integrate(space_sylinder(
             get_sylinder(rotate(data, angle_z=angle, unit=unit)),
-            n_steps=n_steps,
+            n_steps=n_radius,
+            dr=dr,
         ))
     print "%f / %f" % (theta, theta)
 
@@ -313,9 +319,9 @@ def make_lightcurve(data, n_steps=None, dtheta=None, theta=None, unit="deg"):
 if __name__ == "__main__":
     """Everything under this should just be considered a test block for now."""
 
-    radius_star = 0.1
-    radius_in = 0.5
-    radius_out = 3.0
+    radius_star = 1.0
+    radius_in = 1.0
+    radius_out = 4.0
     n_layers = 1
     thickness = 0.002
     # filename = "../data/data_tiny_3d.p"
@@ -325,7 +331,7 @@ if __name__ == "__main__":
         radius_in=radius_in, radius_out=radius_out)
     data = add_3d_points(data, H=1, n_layers=n_layers, thickness=thickness)
 
-    make_lightcurve(data, theta=360, n_steps=360)
+    make_lightcurve(data, theta=360., n_angle=360, n_radius=30)
 
     # writeto(data, "../data/data_micro_3d.p")
 
