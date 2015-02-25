@@ -214,7 +214,7 @@ def points_to_image(data, sylinder=True):
         n_x = 7
         n_y = 3  # Or the datacube gets too big! :(
         grid_x, grid_y, grid_z = np.mgrid[
-            - radius_in   : - radius_out: n_x*1j,
+            radius_in     : radius_out  : n_x*1j,
             - radius_star : radius_star : n_y*1j,
             - radius_star : radius_star : n_y*1j,
         ]
@@ -243,11 +243,33 @@ def points_to_image(data, sylinder=True):
 def get_sylinder(data):
     """TODO: Write docstring."""
     mask = (
-        (data[:, 0] <= -radius_in) *
+        (data[:, 0] > 0) *
         (np.linalg.norm(data[:, 1:3], axis=1) <= radius_star)
     )
     data_sylinder = data[np.where(mask)]
     return data_sylinder
+
+
+def space_sylinder(data, n_steps=None, dr=None):
+    """TODO: Write docstring."""
+
+    if n_steps is None:
+        n_steps = int(round((radius_out-radius_in) / dr))
+    elif dr is None:
+        dr = (radius_out-radius_in) / n_steps
+
+    radiuses = np.linspace(radius_in, radius_out, n_steps+1)
+        # TODO Should not be made here, since it is the same always.
+    densities = np.zeros(n_steps)
+
+    for i in xrange(n_steps):
+        mask = (
+            (data[:, 0] >  radiuses[i]) *
+            (data[:, 0] <= radiuses[i+1])
+        )
+        densities[i] = data[np.where(mask), 3].mean()
+        print radiuses[i], data[np.where(mask), 3].mean()
+    return densities, radiuses[:~0]
 
 
 def integrate(datacube):
@@ -291,7 +313,7 @@ def make_lightcurve(data, n_steps=None, dtheta=None, theta=None, unit="deg"):
 if __name__ == "__main__":
     """Everything under this should just be considered a test block for now."""
 
-    radius_star = 0.05
+    radius_star = 0.1
     radius_in = 0.5
     radius_out = 3.0
     n_layers = 1
@@ -307,27 +329,10 @@ if __name__ == "__main__":
 
     # writeto(data, "../data/data_micro_3d.p")
     data = get_sylinder(data)
-    print data.shape
+    sylinder, radiuses = space_sylinder(data, n_steps=100)
 
-    t_start = time.time()
-    img = points_to_image(data)
-    t_end = time.time()
-    print "Converting to datacube took %f seconds." % (t_end - t_start)
-
-    t_start = time.time()
-    print integrate(img)
-    t_end = time.time()
-    print "Integration of sylinder took %f seconds." % (t_end - t_start)
-
-    plt.imshow(
-        img[:, :, 1],
-        extent=[-radius_star, +radius_star, -radius_out, -radius_in],
-        interpolation="nearest",
-        origin="lower",)
-    plt.colorbar()
+    plt.plot(radiuses, sylinder)
     plt.show()
-
-    # sys.exit(0)
 
 
     # plt.plot(
