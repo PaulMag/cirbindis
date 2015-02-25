@@ -253,6 +253,10 @@ def get_sylinder(data):
 def space_sylinder(data, n_steps=None, dr=None):
     """TODO: Write docstring."""
 
+    print "Spacing sylinder...",
+    sys.stdout.flush()
+    t_start = time.time()
+
     if n_steps is None:
         n_steps = int(round((radius_out-radius_in) / dr))
     elif dr is None:
@@ -272,6 +276,9 @@ def space_sylinder(data, n_steps=None, dr=None):
                 % (densities[i], densities[i+1])
         else:
             densities[i] = data[np.where(mask), 3].mean()
+    t_end = time.time()
+    print "done! It took %f seconds." % (t_end - t_start)
+    sys.stdout.flush()
     return densities
 
 
