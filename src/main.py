@@ -146,8 +146,9 @@ def rotate(data, angle_x=0, angle_y=0, angle_z=0, unit="deg"):
 
     coords_in = data[:, 0:3]
     coords_out = (rotation_matrix * coords_in.transpose()).transpose()
-    data[:, 0:3] = coords_out
-    return data
+    data_rotated = data.copy()
+    data_rotated[:, 0:3] = coords_out
+    return data_rotated
 
 
 def add_3d_points(data, H, n_layers=None, dz=None, thickness=None):
@@ -273,7 +274,7 @@ def space_sylinder(data, n_steps=None, dr=None):
         )
         if data[np.where(mask), 3].size == 0:
             print "Warning: No stars in bin (%g, %g]. Density set to 0." \
-                % (densities[i], densities[i+1])
+                % (radiuses[i], radiuses[i+1])
         else:
             densities[i] = data[np.where(mask), 3].mean()
     t_end = time.time()
@@ -322,15 +323,15 @@ def make_lightcurve(data, n_angle=None, dtheta=None, theta=None, unit="deg", n_r
     plt.show()
 
 
+
 if __name__ == "__main__":
     """Everything under this should just be considered a test block for now."""
 
-    radius_star = 1.0
-    radius_in = 1.0
-    radius_out = 4.0
+    radius_star = .5
+    radius_in = 0.5
+    radius_out = 3.5
     n_layers = 1
     thickness = 0.002
-    # filename = "../data/data_tiny_3d.p"
     filename = "../data/data_cropped.p"
 
     data = load(filename, method="pickle", \
