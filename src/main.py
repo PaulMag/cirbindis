@@ -101,14 +101,20 @@ def writeto(data, filename, method="pickle", separator=" "):
     print "Writing took %f seconds." % (t_end - t_start)
 
 
-def rotate(data, angle_x=0, angle_y=0, angle_z=0, unit="deg"):
+def rotate(data, angle_z=0, angle_y=0, angle_x=None, unit="deg"):
     """Rotate entire dataset by an angle around any axis.
 
     data: (float, array) The dataset to be rotated. Array of shape (N, 4),
         where N is the number of datapoints.
-    angle_x: (float) Angle to rotate around x-axis (roll).
-    angle_y: (float) Angle to rotate around y-axis (pitch).
-    angle_z: (float) Angle to rotate around z-axis (yaw).
+    angle_z: (float) Angle to rotate around z-axis. This is the rotational
+        axis for the disk. It can be gradually increased to simulate the
+        orbital motion of the system..
+    angle_y: (float) Angle to rotate around y-axis. The inclination between
+        the disk and the field of view. This angle should always be the same
+        for one analysis if the disk is not wobbling.
+    angle_x: The x-axis is the line of sight. Rotations around this axis
+        would have no effect on the received flux, therefore this angle is
+        ignored.
     unit: (string) What unit angles are given in.
         'rad', 'deg', 'arcmin' or 'arcsec'.
 
@@ -123,15 +129,9 @@ def rotate(data, angle_x=0, angle_y=0, angle_z=0, unit="deg"):
         factor = np.pi / 180. * 60
     elif unit == "arcsec":
         factor = np.pi / 180. * 3600
-    angle_x *= factor
     angle_y *= factor
     angle_z *= factor
 
-    R_x = np.matrix([
-        [             1,                0,                0],
-        [             0,  np.cos(angle_x), -np.sin(angle_x)],
-        [             0,  np.sin(angle_x),  np.cos(angle_x)],
-    ])
     R_y = np.matrix([
         [ np.cos(angle_y),              0,  np.sin(angle_y)],
         [               0,              1,                0],
@@ -142,7 +142,7 @@ def rotate(data, angle_x=0, angle_y=0, angle_z=0, unit="deg"):
         [ np.sin(angle_z),  np.cos(angle_z),              0],
         [               0,                0,              1],
     ])
-    rotation_matrix = R_z * R_y * R_x
+    rotation_matrix = R_y * R_z
 
     coords_in = data[:, 0:3]
     coords_out = (rotation_matrix * coords_in.transpose()).transpose()
@@ -299,7 +299,15 @@ def integrate(densities):
     return intensity
 
 
-def make_lightcurve(data, n_angle=None, dtheta=None, theta=None, unit="deg", n_radius=None, dr=None):
+def make_lightcurve(
+    data,
+    n_angle=None,
+    dtheta=None,
+    theta=None,
+    unit="deg",
+    n_radius=None,
+    dr=None
+):
     """TODO: Write docstring."""
 
     if n_angle is None:
@@ -313,7 +321,12 @@ def make_lightcurve(data, n_angle=None, dtheta=None, theta=None, unit="deg", n_r
     for i, angle in enumerate(angles):
         print "%f / %f" % (angle, theta)
         lightcurve[i] = integrate(space_sylinder(
-            get_sylinder(rotate(data, angle_z=angle, unit=unit)),
+            get_sylinder(rotate(
+                data,
+                angle_z=angle,
+                angle_y=inclination,
+                unit=unit,
+            )),
             n_steps=n_radius,
             dr=dr,
         ))
@@ -334,7 +347,8 @@ if __name__ == "__main__":
     radius_out = 3.5
     n_layers = 1
     thickness = 0.002
-    filename = "../data/data_cropped.p"
+    inclination = 10.
+    filename = "../data/data.p"
 
     data = load(filename, method="pickle", \
         radius_in=radius_in, radius_out=radius_out)
@@ -342,7 +356,7 @@ if __name__ == "__main__":
 
     make_lightcurve(data, theta=360., n_angle=360, n_radius=30)
 
-    # writeto(data, "../data/data_micro_3d.p")
+    # writeto(data, filename)
 
     # plt.plot(
         # data[::1, 0],
