@@ -151,7 +151,7 @@ def rotate(data, angle_z=0, angle_y=0, angle_x=None, unit="deg"):
     return data_rotated
 
 
-def add_3d_points(data, H, n_layers=None, dz=None, thickness=None):
+def add_3d_points(data, H, n_layers=None, dz=None, thickness=None, ratio=None):
     """Expands a 2D-disk into 3rd (z) dimension assuming a simple model.
 
     z-coordinate must be 0 for every point in data. If the dataset is already
@@ -170,15 +170,20 @@ def add_3d_points(data, H, n_layers=None, dz=None, thickness=None):
     dz: (float) Distance between each layer.
     thickness: (float) Total thickness of disk to provide data for. This
         argument can be given instead of either n_layers or dz. If both
-        n_layers and dz is provided then this is ignored.
+        n_layers and dz are provided then thickness is ignored.
+    ratio: (float) Automatically choose a thickness so the outer layers have
+        a density of ratio*density_z0. If more than 1 of n_layers, dz,
+        thickness are provided then ratio is ignored.
 
     return: (float, array) The dataset with 2*n_layers*N more points added.
     """
 
+    if thickness is None:
+        thickness = - np.log(ratio) * H
     if n_layers is None:
         n_layers = int(round(0.5 * thickness / dz))
     elif dz is None:
-        dz = 0.5 * thickness /n_layers
+        dz = 0.5 * thickness / n_layers
 
     N = data.shape[0]
     data_over = np.zeros((N*n_layers, 4))
@@ -190,6 +195,11 @@ def add_3d_points(data, H, n_layers=None, dz=None, thickness=None):
     data_under = data_over.copy()
     data_under[:, 2] *= -1
 
+    print (
+        "%d layers added on each side of the disk. "
+        "Size of dataset is increased from %d to %d points."
+        % (n_layers, data.shape[0], (2*n_layers+1)*data.shape[0])
+    )
     return np.vstack((data, data_over, data_under))
 
 
@@ -351,7 +361,7 @@ if __name__ == "__main__":
     data = load(filename, method="pickle", \
         radius_in=radius_in, radius_out=radius_out)
     # writeto(data, filename)
-    data = add_3d_points(data, H=1, n_layers=n_layers, thickness=thickness)
+    data = add_3d_points(data, H=1, dz=.2, ratio=.2)
 
     make_lightcurve(data, theta=360., n_angle=32, n_radius=30)
 
