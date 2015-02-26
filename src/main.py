@@ -319,6 +319,8 @@ def make_lightcurve(data, n_angle=None, dtheta=None, theta=None, unit="deg", n_r
         ))
     print "%f / %f" % (theta, theta)
 
+    lightcurve /= lightcurve.mean()
+
     plt.plot(angles, lightcurve)
     plt.show()
 
