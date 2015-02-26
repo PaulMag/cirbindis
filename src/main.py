@@ -272,11 +272,9 @@ def space_sylinder(data, n_steps=None, dr=None):
             (data[:, 0] >  radiuses[i]) *
             (data[:, 0] <= radiuses[i+1])
         )
-        if data[np.where(mask), 3].size == 0:
-            print "Warning: No stars in bin (%g, %g]. Density set to 0." \
-                % (radiuses[i], radiuses[i+1])
-        else:
+        if data[np.where(mask), 3].size > 0:
             densities[i] = data[np.where(mask), 3].mean()
+            # Else there is no density data here, so assume density=0.
     t_end = time.time()
     print "done! It took %f seconds." % (t_end - t_start)
     sys.stdout.flush()
@@ -348,15 +346,15 @@ if __name__ == "__main__":
     n_layers = 1
     thickness = 0.002
     inclination = 10.
-    filename = "../data/data.p"
+    filename = "../data/data_cropped.p"
 
     data = load(filename, method="pickle", \
         radius_in=radius_in, radius_out=radius_out)
+    # writeto(data, filename)
     data = add_3d_points(data, H=1, n_layers=n_layers, thickness=thickness)
 
-    make_lightcurve(data, theta=360., n_angle=360, n_radius=30)
+    make_lightcurve(data, theta=360., n_angle=32, n_radius=30)
 
-    # writeto(data, filename)
 
     # plt.plot(
         # data[::1, 0],
