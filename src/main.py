@@ -314,6 +314,7 @@ def make_lightcurve(
     unit="deg",
     n_radius=None,
     dr=None,
+    save=False,
     show=False,
 ):
     """TODO: Write docstring."""
@@ -361,7 +362,16 @@ def make_lightcurve(
         )
     )
     xlabel = "rotation angle [%s]" % unit
-    ylabel "observed flux"
+    ylabel = "observed flux"
+
+    if save:
+        outfile = open("../results/%s.csv" % title.replace(", ", "__"), "w")
+        outfile.write(title + "\n")
+        outfile.write(xlabel + "\n")
+        outfile.write(ylabel + "\n")
+        for angle, flux in zip(angles, lightcurve):
+            outfile.write("%f,%f\n" % (angle, flux))
+        outfile.close()
 
     if show:
         plt.plot(angles, lightcurve)
@@ -378,7 +388,7 @@ if __name__ == "__main__":
     radius_in = 1.0
     radius_out = 3.5
     n_radius = 10
-    n_angle = 4
+    n_angle = 2
     inclination = 10.
     unit = "deg"
     kappa = 1.
@@ -398,6 +408,7 @@ if __name__ == "__main__":
         n_angle=n_angle,
         n_radius=n_radius,
         unit=unit,
+        save=True,
     )
 
 
