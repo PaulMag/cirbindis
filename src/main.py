@@ -298,7 +298,6 @@ def integrate(densities):
     dr = (radius_out - radius_in) / n_steps
 
     intensity = 1.  # Or whatever the full intensity of the star is.
-    kappa = 1  #TODO Should be defined as a constant outside this function.
 
     for i in xrange(n_steps):
         tau = kappa * densities[i] * dr
@@ -314,7 +313,8 @@ def make_lightcurve(
     theta=None,
     unit="deg",
     n_radius=None,
-    dr=None
+    dr=None,
+    show=False,
 ):
     """TODO: Write docstring."""
 
@@ -342,28 +342,63 @@ def make_lightcurve(
 
     lightcurve /= lightcurve.mean()
 
-    plt.plot(angles, lightcurve)
-    plt.show()
+    title = (
+        "dz=%g, thickness=%g, H=%g, kappa=%g, "
+        "r_star=%g, r_in=%g, r_out=%g, dr=%g, "
+        "dtheta=%g%s, inclination=%g%s"
+        % ( dz,
+            - np.log(ratio) * H,
+            H,
+            kappa,
+            radius_star,
+            radius_in,
+            radius_out,
+            (radius_out - radius_in) / n_radius,
+            float(theta) / n_angle,
+            unit,
+            inclination,
+            unit,
+        )
+    )
+    xlabel = "rotation angle [%s]" % unit
+    ylabel "observed flux"
+
+    if show:
+        plt.plot(angles, lightcurve)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.show()
 
 
 
 if __name__ == "__main__":
     """Everything under this should just be considered a test block for now."""
 
-    radius_star = .5
-    radius_in = 0.5
+    radius_star = .75
+    radius_in = 1.0
     radius_out = 3.5
-    n_layers = 1
-    thickness = 0.002
+    n_radius = 10
+    n_angle = 4
     inclination = 10.
+    unit = "deg"
+    kappa = 1.
+    H = 1.
+    dz = .2
+    ratio = .2
     filename = "../data/data_cropped.p"
 
     data = load(filename, method="pickle", \
         radius_in=radius_in, radius_out=radius_out)
     # writeto(data, filename)
-    data = add_3d_points(data, H=1, dz=.2, ratio=.2)
+    data = add_3d_points(data, H=H, dz=dz, ratio=ratio)
 
-    make_lightcurve(data, theta=360., n_angle=32, n_radius=30)
+    make_lightcurve(
+        data,
+        theta=360.,
+        n_angle=n_angle,
+        n_radius=n_radius,
+        unit=unit,
+    )
 
 
     # plt.plot(
