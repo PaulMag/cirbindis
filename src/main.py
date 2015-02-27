@@ -388,28 +388,32 @@ if __name__ == "__main__":
     radius_in = 1.0
     radius_out = 3.5
     n_radius = 10
-    n_angle = 2
-    inclination = 10.
+    n_angle = 36
+    inclination = 0.
     unit = "deg"
     kappa = 1.
     H = 1.
     dz = .2
     ratio = .2
-    filename = "../data/data_cropped.p"
+    filename = "../data/data.p"
 
-    data = load(filename, method="pickle", \
-        radius_in=radius_in, radius_out=radius_out)
     # writeto(data, filename)
-    data = add_3d_points(data, H=H, dz=dz, ratio=ratio)
 
-    make_lightcurve(
-        data,
-        theta=360.,
-        n_angle=n_angle,
-        n_radius=n_radius,
-        unit=unit,
-        save=True,
-    )
+    for r_out in [10]:
+        radius_out = r_out
+        data = load(filename, method="pickle", \
+            radius_in=radius_in, radius_out=radius_out)
+        data = add_3d_points(data, H=H, dz=dz, ratio=ratio)
+        for inc in [0., 30]:
+            inclination = inc
+            make_lightcurve(
+                data,
+                theta=360.,
+                n_angle=n_angle,
+                n_radius=n_radius,
+                unit=unit,
+                save=True,
+            )
 
 
     # plt.plot(
