@@ -272,35 +272,37 @@ def space_sylinder(data, n_steps=None, dr=None):
         n_steps = int(round((radius_out-radius_in) / dr))
     elif dr is None:
         dr = (radius_out-radius_in) / n_steps
+    dpoints = int(round(data.shape[0] / float(n_steps)))
+        # How many datapoints to include in each bin.
 
-    radiuses = np.linspace(radius_in, radius_out, n_steps+1)
-        # TODO Should not be made here, since it is the same always.
     densities = np.zeros(n_steps)
+    drs = np.zeros(n_steps)
 
-    for i in xrange(n_steps):
-        mask = (
-            (data[:, 0] >  radiuses[i]) *
-            (data[:, 0] <= radiuses[i+1])
-        )
-        if data[np.where(mask), 3].size > 0:
-            densities[i] = data[np.where(mask), 3].mean()
-            # Else there is no density data here, so assume density=0.
+    data = data[np.argsort(data[:, 0])]
+
+    # Do all steps except the last one:
+    for i in xrange(n_steps-1):
+        densities[i] = data[i*dpoints : (i+1)*dpoints, 3].mean()
+        drs[i] = data[(i+1)*dpoints, 0] - data[i*dpoints, 0]
+    # Do the last step:
+    densities[~0] = data[(n_steps-1)*dpoints : , 3].mean()
+    drs[~0] = data[~0, 0] - data[(n_steps-1)*dpoints, 0]
+    s = data[(n_steps-1)*dpoints :].shape[0]
+    drs[~0] *= (s + 1.) / s
+
     t_end = time.time()
     print "done! It took %f seconds." % (t_end - t_start)
     sys.stdout.flush()
-    return densities
+    return densities, drs
 
 
-def integrate(densities):
+def integrate(densities, drs):
     """TODO: Write docstring."""
-
-    n_steps = densities.shape[0]  # Assume sylinder is oriented in x-direction.
-    dr = (radius_out - radius_in) / n_steps
 
     intensity = 1.  # Or whatever the full intensity of the star is.
 
-    for i in xrange(n_steps):
-        tau = kappa * densities[i] * dr
+    for density, dr in zip(densities, drs):
+        tau = kappa * density * dr
         intensity *= np.exp(-tau)
 
     return intensity
@@ -347,12 +349,12 @@ def make_lightcurve(
             angle_y=inclination,
             unit=unit,
         )
-        densities = space_sylinder(
+        densities, drs = space_sylinder(
             data2,
             n_steps=n_radius,
             dr=dr,
         )
-        lightcurve[i] = integrate(densities)
+        lightcurve[i] = integrate(densities, drs)
     print "%f / %f" % (theta, theta)
 
     lightcurve /= lightcurve.mean()
