@@ -329,29 +329,30 @@ def make_lightcurve(
 
     for i, angle in enumerate(angles):
         print "%f / %f" % (angle, theta)
-        data = rotate(
+        data2 = rotate(
             data,
             angle_z=angle,
             unit=unit,
         )
-        data = get_sylinder(data)
-        data = add_3d_points(
-            data,
+        data2 = get_sylinder(data2)
+        data2 = add_3d_points(
+            data2,
             H=H,
             dz=dz,
             ratio=ratio,
         )
-        data = rotate(
-            data,
+        data2 = get_sylinder(data2)
+        data2 = rotate(
+            data2,
             angle_y=inclination,
             unit=unit,
         )
-        data = space_sylinder(
-            data,
+        densities = space_sylinder(
+            data2,
             n_steps=n_radius,
             dr=dr,
         )
-        lightcurve[i] = integrate(data2)
+        lightcurve[i] = integrate(densities)
     print "%f / %f" % (theta, theta)
 
     lightcurve /= lightcurve.mean()
@@ -416,7 +417,6 @@ if __name__ == "__main__":
         radius_out = r_out
         data = load(filename, method="pickle", \
             radius_in=radius_in, radius_out=radius_out)
-        data = add_3d_points(data, H=H, dz=dz, ratio=ratio)
         for inc in [0., 30]:
             inclination = inc
             make_lightcurve(
