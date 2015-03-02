@@ -329,16 +329,29 @@ def make_lightcurve(
 
     for i, angle in enumerate(angles):
         print "%f / %f" % (angle, theta)
-        lightcurve[i] = integrate(space_sylinder(
-            get_sylinder(rotate(
-                data,
-                angle_z=angle,
-                angle_y=inclination,
-                unit=unit,
-            )),
+        data = rotate(
+            data,
+            angle_z=angle,
+            unit=unit,
+        )
+        data = get_sylinder(data)
+        data = add_3d_points(
+            data,
+            H=H,
+            dz=dz,
+            ratio=ratio,
+        )
+        data = rotate(
+            data,
+            angle_y=inclination,
+            unit=unit,
+        )
+        data = space_sylinder(
+            data,
             n_steps=n_radius,
             dr=dr,
-        ))
+        )
+        lightcurve[i] = integrate(data2)
     print "%f / %f" % (theta, theta)
 
     lightcurve /= lightcurve.mean()
