@@ -343,14 +343,14 @@ def make_lightcurve(
             ratio=ratio,
         )
         for j, inclination in enumerate(inclinations):
-            data2 = rotate(
+            data3 = rotate(
                 data2,
                 angle_y=inclination,
                 unit=unit,
             )
-            data2 = get_sylinder(data2, radius_star)
+            data3 = get_sylinder(data3, radius_star)
             densities, drs = space_sylinder(
-                data2,
+                data3,
                 n_steps=n_radius,
                 dr=dr,
                 radius_in=radius_in,
