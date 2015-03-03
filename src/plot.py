@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def load(filename, separator=","):
+def load(filename, inclination, separator=","):
     """Load a dataset to plot from a file.
 
     Assumed to be on the form 'angle,flux'.
@@ -26,6 +26,16 @@ def load(filename, separator=","):
                 "'filename' must be a string or sequence of strings."
             )
 
+    if isinstance(inclination, basestring):
+        inclinations = inclination.split(" ")
+    else:
+        try:
+            iter(inclination)
+            inclinations = inclination
+        except TypeError:
+            raise TypeError(
+                "'filename' must be a string or sequence of strings."
+            )
 
     infiles = [open(filename, "r") for filename in filenames]
 
@@ -36,6 +46,7 @@ def load(filename, separator=","):
     xlabel = xlabels[0]
     ylabel = ylabels[0]
 
+    i = 0
     for infile in infiles:
         data = []
         for line in infile:
@@ -43,14 +54,16 @@ def load(filename, separator=","):
             data.append(line)
         angles, fluxes = np.array(data).T
         infile.close()
-        plt.plot(angles, fluxes)
+        plt.plot(angles, fluxes, label="inc="+inclinations[i])
+        i += 1
 
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    plt.legend()
     plt.show()
 
 
 if __name__ == "__main__":
 
-    load(filename=sys.argv[1:])
+    load(filename=sys.argv[2:], inclination=sys.argv[1])
