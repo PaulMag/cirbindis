@@ -165,8 +165,7 @@ def add_3d_points(data, H, n_layers=None, dz=None, thickness=None, ratio=None):
     Note that this method multiplies the size of the dataset provided, so
     the returned data can be very large.
 
-    data: (float, array) The dataset to be rotated. Array of shape (N, 4),
-        where N is the number of datapoints.
+
     H: (float) A physical parameter. We assume it to be a constant.
     n_layers: (int) How many data layers to add to EACH side of the disk.
         The total number of layers in z-direction becomes 2*n_layers+1.
@@ -207,7 +206,16 @@ def add_3d_points(data, H, n_layers=None, dz=None, thickness=None, ratio=None):
 
 
 def get_sylinder(data, radius_star):
-    """TODO: Write docstring."""
+    """Slice out a sylinder shape from a set of datapoints.
+
+    The sylinder is always centered on the x-axis and spans x=(0, inf].
+
+    data: (float, array) The dataset to be sliced. Array of shape (N, 4),
+        where N is the number of datapoints.
+    radius_star: (float) Radius of the sylinder (a distance in the yz-plane).
+
+    return: (float, array) The slice of the dataset contained in the sylinder.
+    """
     mask = (
         (data[:, 0] > 0) *
         (np.linalg.norm(data[:, 1:3], axis=1) <= radius_star)
@@ -223,7 +231,23 @@ def space_sylinder(
     radius_in=None,
     radius_out=None,
 ):
-    """TODO: Write docstring."""
+    """Bin a (sylinder shaped) set of datapoints into a set of mean densities.
+
+    The sylinder is first sorted along the x-axis and is then cut along the
+    x-axis like a loaf of bread. The mean density is then computed from each
+    slice of the sylinder/bread.
+
+    This method is the one using most time in this program.
+
+    TODO: Decide on how to organize the other arguments.
+    data: (float, array) The dataset to be binned. Array of shape (N, 4),
+        where N is the number of datapoints.
+
+    return: (float, array), (float, array) A list of mean densities and the
+        corresponding list of delta radiuses for each bin. Both are arrays of
+        length n_step. The arrays are order FROM inside of disk TO oustide
+        of disk.
+    """
 
     print "Spacing sylinder...",
     sys.stdout.flush()
@@ -256,7 +280,15 @@ def space_sylinder(
 
 
 def integrate(densities, drs):
-    """TODO: Write docstring."""
+    """Integrates the intensity through the layers of dust.
+
+    densities: (float, array) List of (mean) densities through a field of
+        view of the disk, ordered from inside to outside.
+    drs: (float, array) List of the corresponding dr to each density
+        measurement.
+
+    return: (float) Perceived intensity outside the disk
+    """
 
     intensity = 1.  # Or whatever the full intensity of the star is.
 
@@ -281,7 +313,11 @@ def make_lightcurve(
     save=False,
     show=False,
 ):
-    """TODO: Write docstring."""
+    """Makes a lightcurve by calling the other methods for each orientation
+    of the dataset. Sort of a main method.
+
+    TODO: Complete docstring.
+    """
 
     if n_angle is None:
         n_angle = int(round(float(theta) / dtheta))
