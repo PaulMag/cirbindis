@@ -301,6 +301,7 @@ def integrate(densities, drs):
 
 def make_lightcurve(
     data,
+    inclinations=None,
     radius_star=None,
     radius_in=None,
     radius_out=None,
@@ -325,7 +326,7 @@ def make_lightcurve(
         dtheta = float(theta) / n_angle
 
     angles = np.linspace(0, theta-dtheta, n_angle)
-    lightcurve = np.zeros(n_angle)
+    lightcurve = np.zeros((len(inclinations), n_angle))
 
     for i, angle in enumerate(angles):
         print "%f / %f" % (angle, theta)
@@ -341,59 +342,66 @@ def make_lightcurve(
             dz=dz,
             ratio=ratio,
         )
-        data2 = rotate(
-            data2,
-            angle_y=inclination,
-            unit=unit,
-        )
-        data2 = get_sylinder(data2, radius_star)
-        densities, drs = space_sylinder(
-            data2,
-            n_steps=n_radius,
-            dr=dr,
-            radius_in=radius_in,
-            radius_out=radius_out,
+        for j, inclination in enumerate(inclinations):
+            data2 = rotate(
+                data2,
+                angle_y=inclination,
+                unit=unit,
+            )
+            data2 = get_sylinder(data2, radius_star)
+            densities, drs = space_sylinder(
+                data2,
+                n_steps=n_radius,
+                dr=dr,
+                radius_in=radius_in,
+                radius_out=radius_out,
 
-        )
-        lightcurve[i] = integrate(densities, drs)
+            )
+            lightcurve[j, i] = integrate(densities, drs)
     print "%f / %f" % (theta, theta)
 
-    lightcurve /= lightcurve.mean()
+    lightcurve /= lightcurve.mean(axis=1)[:, None]
 
-    title = (
-        "dz=%g, thickness=%g, H=%g, kappa=%g, "
-        "r_star=%g, r_in=%g, r_out=%g, dr=%g, "
-        "dtheta=%g%s, inclination=%g%s"
-        % ( dz,
-            - np.log(ratio) * H,
-            H,
-            kappa,
-            radius_star,
-            radius_in,
-            radius_out,
-            (radius_out - radius_in) / n_radius,
-            float(theta) / n_angle,
-            unit,
-            inclination,
-            unit,
+    for j, inclination in enumerate(inclinations):
+
+        title = (
+            "dz=%g, thickness=%g, H=%g, kappa=%g, "
+            "r_star=%g, r_in=%g, r_out=%g, dr=%g, "
+            "dtheta=%g%s, inclination=%g%s"
+            % ( dz,
+                - np.log(ratio) * H,
+                H,
+                kappa,
+                radius_star,
+                radius_in,
+                radius_out,
+                (radius_out - radius_in) / n_radius,
+                float(theta) / n_angle,
+                unit,
+                inclination,
+                unit,
+            )
         )
-    )
-    xlabel = "rotation angle [%s]" % unit
-    ylabel = "observed flux"
+        xlabel = "rotation angle [%s]" % unit
+        ylabel = "observed flux"
 
-    if save:
-        outfile = open("../results/%s.csv" % title.replace(", ", "__"), "w")
-        outfile.write(title + "\n")
-        outfile.write(xlabel + "\n")
-        outfile.write(ylabel + "\n")
-        for angle, flux in zip(angles, lightcurve):
-            outfile.write("%f,%f\n" % (angle, flux))
-        outfile.close()
+        if save:
+            outfile = open("../results/%s.csv" % title.replace(", ", "__"), "w")
+            outfile.write(title + "\n")
+            outfile.write(xlabel + "\n")
+            outfile.write(ylabel + "\n")
+            for angle, flux in zip(angles, lightcurve[j]):
+                outfile.write("%f,%f\n" % (angle, flux))
+            outfile.close()
+
+        if show:
+            plt.plot(angles, lightcurve[j], label="inc=%g" % inclinations[j])
 
     if show:
-        plt.plot(angles, lightcurve)
+        plt.title(title)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
+        plt.legend()
         plt.show()
 
 
@@ -405,14 +413,14 @@ if __name__ == "__main__":
     radius_in = 1.0
     radius_out = 3.5
     n_radius = 10
-    n_angle = 36
-    inclination = 0.
+    n_angle = 6
+    inclinations = [0, 30]
     unit = "deg"
     kappa = 1.
     H = 1.
     dz = .2
     ratio = .2
-    filename = "../data/data.p"
+    filename = "../data/data_cropped.p"
 
     # writeto(data, filename)
 
@@ -420,19 +428,18 @@ if __name__ == "__main__":
         radius_out = r_out
         data = load(filename, method="pickle", \
             radius_in=radius_in, radius_out=radius_out)
-        for inc in [0., 30]:
-            inclination = inc
-            make_lightcurve(
-                data,
-                radius_star=radius_star,
-                radius_in=radius_in,
-                radius_out=radius_out,
-                theta=360.,
-                n_angle=n_angle,
-                n_radius=n_radius,
-                unit=unit,
-                save=True,
-            )
+        make_lightcurve(
+            data,
+            inclinations=inclinations,
+            radius_star=radius_star,
+            radius_in=radius_in,
+            radius_out=radius_out,
+            theta=360.,
+            n_angle=n_angle,
+            n_radius=n_radius,
+            unit=unit,
+            show=True,
+        )
 
 
     # plt.plot(
