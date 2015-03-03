@@ -320,6 +320,12 @@ def make_lightcurve(
     TODO: Complete docstring.
     """
 
+    # If the inclination is a single number, put it in a list:
+    try:
+        iter(inclinations):
+    except TypeError:
+        inclinations = [inclinations]
+
     if n_angle is None:
         n_angle = int(round(float(theta) / dtheta))
     elif dtheta is None:
