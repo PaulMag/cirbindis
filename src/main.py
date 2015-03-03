@@ -203,7 +203,7 @@ def add_3d_points(data, H, n_layers=None, dz=None, thickness=None, ratio=None):
     return np.vstack((data, data_over, data_under))
 
 
-def get_sylinder(data):
+def get_sylinder(data, radius_star):
     """TODO: Write docstring."""
     mask = (
         (data[:, 0] > 0) *
@@ -213,7 +213,13 @@ def get_sylinder(data):
     return data_sylinder
 
 
-def space_sylinder(data, n_steps=None, dr=None):
+def space_sylinder(
+    data,
+    n_steps=None,
+    dr=None,
+    radius_in=None,
+    radius_out=None,
+):
     """TODO: Write docstring."""
 
     print "Spacing sylinder...",
@@ -222,8 +228,6 @@ def space_sylinder(data, n_steps=None, dr=None):
 
     if n_steps is None:
         n_steps = int(round((radius_out-radius_in) / dr))
-    elif dr is None:
-        dr = (radius_out-radius_in) / n_steps
     dpoints = int(round(data.shape[0] / float(n_steps)))
         # How many datapoints to include in each bin.
 
@@ -262,6 +266,9 @@ def integrate(densities, drs):
 
 def make_lightcurve(
     data,
+    radius_star=None,
+    radius_in=None,
+    radius_out=None,
     n_angle=None,
     dtheta=None,
     theta=None,
@@ -288,7 +295,7 @@ def make_lightcurve(
             angle_z=angle,
             unit=unit,
         )
-        data2 = get_sylinder(data2)
+        data2 = get_sylinder(data2, radius_star)
         data2 = add_3d_points(
             data2,
             H=H,
@@ -300,11 +307,14 @@ def make_lightcurve(
             angle_y=inclination,
             unit=unit,
         )
-        data2 = get_sylinder(data2)
+        data2 = get_sylinder(data2, radius_star)
         densities, drs = space_sylinder(
             data2,
             n_steps=n_radius,
             dr=dr,
+            radius_in=radius_in,
+            radius_out=radius_out,
+
         )
         lightcurve[i] = integrate(densities, drs)
     print "%f / %f" % (theta, theta)
@@ -367,7 +377,7 @@ if __name__ == "__main__":
 
     # writeto(data, filename)
 
-    for r_out in [10]:
+    for r_out in [3.0]:
         radius_out = r_out
         data = load(filename, method="pickle", \
             radius_in=radius_in, radius_out=radius_out)
@@ -375,6 +385,9 @@ if __name__ == "__main__":
             inclination = inc
             make_lightcurve(
                 data,
+                radius_star=radius_star,
+                radius_in=radius_in,
+                radius_out=radius_out,
                 theta=360.,
                 n_angle=n_angle,
                 n_radius=n_radius,
