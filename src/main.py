@@ -1,13 +1,16 @@
 import sys
+    # For doing meta things like receiving command-line arguments and exiting
+    # the program.
 import numpy as np
-    #  Numerical Python. For performing computations on arrays/matrices fast.
+    #  Numerical Python. Contains mathematical functions for performing
+    # computations on arrays/matrices fast.
 import cPickle as pickle
     # Can be used to save (dump) and load Python objects to files. Much
     # faster than reading and writing ASCII tables.
 import time
     # Used to time parts of code to look for bottlenecks.
-import scipy.interpolate
 import matplotlib.pyplot as plt
+    # For plotting results.
 
 
 def load(
