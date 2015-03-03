@@ -343,12 +343,12 @@ def make_lightcurve(
             dz=dz,
             ratio=ratio,
         )
-        data2 = get_sylinder(data2)
         data2 = rotate(
             data2,
             angle_y=inclination,
             unit=unit,
         )
+        data2 = get_sylinder(data2)
         densities, drs = space_sylinder(
             data2,
             n_steps=n_radius,
