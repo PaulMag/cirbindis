@@ -9,26 +9,42 @@ def load(filename, separator=","):
     Assumed to be on the form 'angle,flux'.
     The first 3 lines are the title, xlabel and ylabel.
 
-    filename: (string) Full pathname to file containing dataset.
+    filename: (string) or (string, list) Full pathname to file containing
+        dataset or a list of pathnames.
     separator: (string) This is the separator between the values each line.
         Usually a space or comma.
     """
 
-    infile = open(filename, "r")
+    if isinstance(filename, basestring):
+        filenames = [filename]
+    else:
+        try:
+            iter(filename)
+            filenames = filename
+        except TypeError:
+            raise TypeError(
+                "'filename' must be a string or sequence of strings."
+            )
 
-    title = infile.readline()
-    xlabel = infile.readline()
-    ylabel = infile.readline()
 
-    data = []
-    for line in infile:
-        line = [float(value) for value in line.split(separator)]
-        data.append(line)
-    angles, fluxes = np.array(data).T
+    infiles = [open(filename, "r") for filename in filenames]
 
-    infile.close()
+    titles = [infile.readline() for infile in infiles]
+    xlabels = [infile.readline() for infile in infiles]
+    ylabels = [infile.readline() for infile in infiles]
+    title = titles[0]
+    xlabel = xlabels[0]
+    ylabel = ylabels[0]
 
-    plt.plot(angles, fluxes)
+    for infile in infiles:
+        data = []
+        for line in infile:
+            line = [float(value) for value in line.split(separator)]
+            data.append(line)
+        angles, fluxes = np.array(data).T
+        infile.close()
+        plt.plot(angles, fluxes)
+
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
@@ -37,4 +53,4 @@ def load(filename, separator=","):
 
 if __name__ == "__main__":
 
-    load(filename=sys.argv[1])
+    load(filename=sys.argv[1:])
