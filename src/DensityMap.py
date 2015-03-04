@@ -22,6 +22,7 @@ class DensityMap:
     def __init__(self,
         data=None,
         filename=None,
+        inclinations=None,
         r0=1.,
         radius_star=None,
         radius_in=0,
@@ -29,6 +30,12 @@ class DensityMap:
     ):
 
         self.data_rotated = None
+        # If the inclination is a single number, put it in a list:
+        try:
+            iter(inclinations)
+            self.inclinations = inclinations
+        except TypeError:
+            self.inclinations = [inclinations]
         self.r0 = r0
         self.radius_star = radius_star
         self.radius_in = radius_in
@@ -339,6 +346,8 @@ class DensityMap:
             elif unit == "arcsec":
                 theta = 360. * 3600
 
+        if inclinations is None:
+            inclinations = self.inclinations
         # If the inclination is a single number, put it in a list:
         try:
             iter(inclinations)

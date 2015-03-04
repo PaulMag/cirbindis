@@ -20,12 +20,12 @@ if __name__ == "__main__":
     for radius_out in [3.0]:
         dataset = DensityMap(
             filename=filename,
+            inclinations=inclinations,
             radius_star=radius_star,
             radius_in=radius_in,
             radius_out=radius_out,
         )
         dataset.make_lightcurve(
-            inclinations=inclinations,
             n_angle=n_angle,
             n_radius=n_radius,
             unit=unit,
