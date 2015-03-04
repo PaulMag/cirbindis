@@ -328,6 +328,17 @@ class DensityMap:
         TODO: Complete docstring.
         """
 
+        # Default setting for theta is a full revolution:
+        if theta is None:
+            if unit == "rad":
+                theta = 2*np.pi
+            elif unit == "deg":
+                theta = 360.
+            elif unit == "arcmin":
+                theta = 360. * 60
+            elif unit == "arcsec":
+                theta = 360. * 3600
+
         # If the inclination is a single number, put it in a list:
         try:
             iter(inclinations)

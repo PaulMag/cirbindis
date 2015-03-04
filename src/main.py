@@ -26,7 +26,6 @@ if __name__ == "__main__":
         )
         dataset.make_lightcurve(
             inclinations=inclinations,
-            theta=360.,
             n_angle=n_angle,
             n_radius=n_radius,
             unit=unit,
