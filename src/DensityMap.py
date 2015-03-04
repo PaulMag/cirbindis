@@ -26,7 +26,7 @@ class DensityMap:
     ):
 
         if data is not None:
-            if data.shape[1] == 4
+            if data.shape[1] == 4:
                 self.data = data
             elif data.shape[1] == 3:
                 self.data = np.vstack((
@@ -227,7 +227,7 @@ class DensityMap:
         )
 
 
-    def get_sylinder(self, radius_star):
+    def get_sylinder(self):
         """Slice out a sylinder shape from a set of datapoints.
         TODO: Update this docstring.
 
@@ -240,10 +240,198 @@ class DensityMap:
         return: (float, array) The slice of the dataset contained in the sylinder.
         """
         mask = (
-            (selfdata[:, 0] > 0) *
-            (np.linalg.norm(self.data[:, 1:3], axis=1) <= radius_star)
+            (self.data_rotated[:, 0] > 0) *
+            (   np.linalg.norm(self.data_rotated[:, 1:3], axis=1) <=
+                self.radius_star
+            )
         )
-        data_sylinder = self.data[np.where(mask)]
+        data_sylinder = self.data_rotated[np.where(mask)]
         return data_sylinder
 
 
+    def make_lightcurve(self,
+        inclinations=None,
+        H=1.,
+        n_angle=None,
+        dtheta=None,
+        theta=None,
+        unit="deg",
+        n_radius=None,
+        dr=None,
+        dz=None,
+        ratio=None,
+        save=False,
+        show=False,
+    ):
+        """Makes a lightcurve by calling the other methods for each orientation
+        of the dataset. Sort of a main method.
+
+        TODO: Complete docstring.
+        """
+
+        # If the inclination is a single number, put it in a list:
+        try:
+            iter(inclinations)
+        except TypeError:
+            inclinations = [inclinations]
+
+        if n_angle is None:
+            n_angle = int(round(float(theta) / dtheta))
+        elif dtheta is None:
+            dtheta = float(theta) / n_angle
+
+        angles = np.linspace(0, theta-dtheta, n_angle)
+        lightcurve = np.zeros((len(inclinations), n_angle))
+
+        for i, angle in enumerate(angles):
+            print "%f / %f" % (angle, theta)
+            self.rotate(
+                angle_z=angle,
+                unit=unit,
+            )
+            sylinder = DensityMap(
+                self.get_sylinder(),
+                radius_star=radius_star,
+                radius_in=radius_in,
+                radius_out=radius_out,
+            )
+            sylinder.add_3d_points(
+                H=H,
+                dz=dz,
+                ratio=ratio,
+            )
+            for j, inclination in enumerate(inclinations):
+                sylinder.rotate(
+                    angle_y=inclination,
+                    unit=unit,
+                )
+                data3 = sylinder.get_sylinder()
+                densities, drs = space_sylinder(
+                    data3,
+                    n_steps=n_radius,
+                    dr=dr,
+                    radius_in=self.radius_in,
+                    radius_out=self.radius_out,
+                )
+                lightcurve[j, i] = integrate(densities, drs)
+        print "%f / %f" % (theta, theta)
+
+        lightcurve /= lightcurve.mean(axis=1)[:, None]
+
+        for j, inclination in enumerate(inclinations):
+
+            title = (
+                "dz=%g, thickness=%g, H=%g, kappa=%g, "
+                "r_star=%g, r_in=%g, r_out=%g, dr=%g, "
+                "dtheta=%g%s, inclination=%g%s"
+                % ( dz,
+                    - np.log(ratio) * H,
+                    H,
+                    kappa,
+                    radius_star,
+                    radius_in,
+                    radius_out,
+                    (radius_out - radius_in) / n_radius,
+                    float(theta) / n_angle,
+                    unit,
+                    inclination,
+                    unit,
+                )
+            )
+            xlabel = "rotation angle [%s]" % unit
+            ylabel = "observed flux"
+
+            if save:
+                outfile = open("../results/%s.csv" % title.replace(", ", "__"), "w")
+                outfile.write(title + "\n")
+                outfile.write(xlabel + "\n")
+                outfile.write(ylabel + "\n")
+                for angle, flux in zip(angles, lightcurve[j]):
+                    outfile.write("%f,%f\n" % (angle, flux))
+                outfile.close()
+
+            if show:
+                plt.plot(angles, lightcurve[j], label="inc=%g" % inclinations[j])
+
+        if show:
+            plt.title(title)
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
+            plt.legend()
+            plt.show()
+
+
+
+def space_sylinder(
+    data,
+    n_steps=None,
+    dr=None,
+    radius_in=None,
+    radius_out=None,
+):
+    """Bin a (sylinder shaped) set of datapoints into a set of mean densities.
+
+    The sylinder is first sorted along the x-axis and is then cut along the
+    x-axis like a loaf of bread. The mean density is then computed from each
+    slice of the sylinder/bread.
+
+    This method is the one using most time in this program.
+
+    TODO: Decide on how to organize the other arguments.
+    data: (float, array) The dataset to be binned. Array of shape (N, 4),
+        where N is the number of datapoints.
+
+    return: (float, array), (float, array) A list of mean densities and the
+        corresponding list of delta radiuses for each bin. Both are arrays of
+        length n_step. The arrays are order FROM inside of disk TO oustide
+        of disk.
+    """
+
+    print "Spacing sylinder...",
+    sys.stdout.flush()
+    t_start = time.time()
+
+    if n_steps is None:
+        n_steps = int(round((radius_out-radius_in) / dr))
+    dpoints = int(round(data.shape[0] / float(n_steps)))
+        # How many datapoints to include in each bin.
+
+    densities = np.zeros(n_steps)
+    drs = np.zeros(n_steps)
+
+    data = data[np.argsort(data[:, 0])]
+
+    # Do all steps except the last one:
+    for i in xrange(n_steps-1):
+        densities[i] = data[i*dpoints : (i+1)*dpoints, 3].mean()
+        drs[i] = data[(i+1)*dpoints, 0] - data[i*dpoints, 0]
+    # Do the last step:
+    densities[~0] = data[(n_steps-1)*dpoints : , 3].mean()
+    drs[~0] = data[~0, 0] - data[(n_steps-1)*dpoints, 0]
+    s = data[(n_steps-1)*dpoints :].shape[0]
+    drs[~0] *= (s + 1.) / s
+
+    t_end = time.time()
+    print "done! It took %f seconds." % (t_end - t_start)
+    sys.stdout.flush()
+    return densities, drs
+
+
+def integrate(densities, drs):
+    """Integrates the intensity through the layers of dust.
+
+    densities: (float, array) List of (mean) densities through a field of
+        view of the disk, ordered from inside to outside.
+    drs: (float, array) List of the corresponding dr to each density
+        measurement.
+
+    return: (float) Perceived intensity outside the disk
+    """
+
+    intensity = 1.  # Or whatever the full intensity of the star is.
+
+    for density, dr in zip(densities, drs):
+        tau = kappa * density * dr
+        intensity *= np.exp(-tau)
+
+    return intensity
