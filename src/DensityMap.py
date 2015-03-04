@@ -70,7 +70,8 @@ class DensityMap:
             data points.
         """
 
-        t_start = time.time()  # Just to time the loading, in case of large dataset.
+        t_start = time.time()
+            # Just to time the loading, in case of large dataset.
         infile = open(filename, "r")
 
         if method == "pickle":
@@ -102,6 +103,43 @@ class DensityMap:
             z = np.zeros((data.shape[0], 1))
             data = np.hstack((data[:, 0:2], z, data[:, 2, None]))
         self.data = data
+
+
+    def writeto(self, filename, method="pickle", separator=" "):
+        """Write a dataset to a file for later use.
+        TODO: Update this docstring.
+
+        Assumed to be on the form 'x,y,z,density' which represents a point in
+        cartesian space and the density at that point.
+
+        filename: (string) Full pathname to outfile for writing data.
+        method: (string) What kind of writing algorithm to use. Recommended to
+            use 'pickle' if it will be loaded by this program later (faster) and
+            'ascii' for an other purpose.
+        separator: (string) If method='ascii' this is the separator between the
+            values each line. Usually a space or comma. Ignored if method='pickle'.
+        """
+
+        t_start = time.time()
+            # Just to time the writing, in case of large dataset.
+
+        if method == "pickle":
+            outfile = open(filename, "wb")
+            pickle.dump(self.data, outfile)
+
+        elif method == "ascii":
+            outfile = open(filename, "w")
+            for line in self.data:
+                outfile.write("%f%s%f%s%f%s%f\n" % (
+                    line[0], separator,
+                    line[1], separator,
+                    line[2], separator,
+                    line[3],
+                ))
+
+        outfile.close()
+        t_end = time.time()  # End of timer.
+        print "Writing took %f seconds." % (t_end - t_start)
 
 
     def rotate(self, angle_z=0, angle_y=0, angle_x=None, unit="deg"):
