@@ -299,6 +299,27 @@ def integrate(densities, drs):
     return intensity
 
 
+def distance(points, p1, p2=None):
+    """Returns the distances from a set of points to a line.
+
+    points: (float, array) Coordinates represented by an array of shape
+        (N, d) where N is the number of points and d is the number of
+        dimensions (2 or 3).
+    p1: (float, array) A point in space which defines a line with p2.
+    p2: (float, array) A point in space which defines a line with p1. If p2
+        is not provided it is assumed that the line is parallell to the x-axis.
+
+    return: (float, array) The shortest euclidian distances between points and the line (p1, p2).
+    """
+    if p2 is None:
+        p2 = p1.copy()
+        p2[0] += 1.
+    return np.linalg.norm(
+        np.cross(p1-points, p2-points) / np.linalg.norm(p2 - p1),
+        axis=1,
+    )
+
+
 def make_lightcurve(
     data,
     inclinations=None,
@@ -322,7 +343,7 @@ def make_lightcurve(
 
     # If the inclination is a single number, put it in a list:
     try:
-        iter(inclinations):
+        iter(inclinations)
     except TypeError:
         inclinations = [inclinations]
 
