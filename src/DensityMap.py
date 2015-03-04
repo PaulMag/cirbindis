@@ -22,12 +22,14 @@ class DensityMap:
     def __init__(self,
         data=None,
         filename=None,
+        r0=1.,
         radius_star=None,
         radius_in=0,
         radius_out=np.inf,
     ):
 
         self.data_rotated = None
+        self.r0 = r0
         self.radius_star = radius_star
         self.radius_in = radius_in
         self.radius_out = radius_out
@@ -140,6 +142,21 @@ class DensityMap:
         outfile.close()
         t_end = time.time()  # End of timer.
         print "Writing took %f seconds." % (t_end - t_start)
+
+
+    def set_H(self, H0, H_power):
+        self.H0 = H0
+        self.H_power = H_power
+
+    def get_H(self, r):
+        return self.H0 * (r / self.r0)**self.H_power
+
+    def set_sigma(self, sigma0, sigma_power):
+        self.sigma0 = sigma0
+        self.sigma_power = sigma_power
+
+    def get_sigma(self, r):
+        return self.sigma0 * (r / self.r0)**self.sigma_power
 
 
     def rotate(self, angle_z=0, angle_y=0, angle_x=None, unit="deg"):
