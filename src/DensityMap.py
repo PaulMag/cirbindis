@@ -12,6 +12,8 @@ import time
 import matplotlib.pyplot as plt
     # For plotting results.
 
+kappa = 1.
+
 
 
 class DensityMap:
@@ -25,6 +27,11 @@ class DensityMap:
         radius_out=np.inf,
     ):
 
+        self.data_rotated = None
+        self.radius_star = radius_star
+        self.radius_in = radius_in
+        self.radius_out = radius_out
+
         if data is not None:
             if data.shape[1] == 4:
                 self.data = data
@@ -36,20 +43,16 @@ class DensityMap:
                 ))
 
         elif filename is not None:
-            self.data = self.load(filename)
-
-        self.data_rotated = None
-        self.radius_star = radius_star
-        self.radius_in = radius_in
-        self.radius_out = radius_out
+            self.load(filename)
 
 
-    def load(
+    def load(self,
         filename,
         method="pickle",
         separator=" ",
     ):
         """Load a dataset to analyse from a file.
+        TODO: Update this docstring.
 
         Assumed to be on the form 'x,y,density' or 'x,y,z,density' which
         represents a point in cartesian space and the density at that point. If
@@ -146,7 +149,8 @@ class DensityMap:
         rotation_matrix = R_y * R_z
 
         coords_in = self.data[:, :~0]
-        coords_out = (rotation_matrix * coords_in.transpose()).transpose()
+        coords_out = \
+            np.asarray(rotation_matrix * coords_in.transpose()).transpose()
         self.data_rotated = np.hstack((coords_out, self.data[:, ~0, None]))
 
 
@@ -291,9 +295,9 @@ class DensityMap:
             )
             sylinder = DensityMap(
                 self.get_sylinder(),
-                radius_star=radius_star,
-                radius_in=radius_in,
-                radius_out=radius_out,
+                radius_star=self.radius_star,
+                radius_in=self.radius_in,
+                radius_out=self.radius_out,
             )
             sylinder.add_3d_points(
                 H=H,
@@ -328,10 +332,10 @@ class DensityMap:
                     - np.log(ratio) * H,
                     H,
                     kappa,
-                    radius_star,
-                    radius_in,
-                    radius_out,
-                    (radius_out - radius_in) / n_radius,
+                    self.radius_star,
+                    self.radius_in,
+                    self.radius_out,
+                    (self.radius_out - self.radius_in) / n_radius,
                     float(theta) / n_angle,
                     unit,
                     inclination,
@@ -351,7 +355,11 @@ class DensityMap:
                 outfile.close()
 
             if show:
-                plt.plot(angles, lightcurve[j], label="inc=%g" % inclinations[j])
+                plt.plot(
+                    angles,
+                    lightcurve[j],
+                    label="inc=%g" % inclinations[j],
+                )
 
         if show:
             plt.title(title)
