@@ -449,6 +449,7 @@ class DensityMap:
 def space_sylinder(
     data,
     inclination=0,
+    unit="deg",
     H=1.,
     n_steps=None,
     dr=None,
@@ -477,6 +478,16 @@ def space_sylinder(
     # sys.stdout.flush()
     # t_start = time.time()
 
+    if unit == "rad":
+        factor = 1.
+    elif unit == "deg":
+        factor = np.pi / 180.
+    elif unit == "arcmin":
+        factor = np.pi / 180. * 60
+    elif unit == "arcsec":
+        factor = np.pi / 180. * 3600
+    inclination *= factor
+
     if n_steps is None:
         n_steps = int(round((radius_out-radius_in) / dr))
     dpoints = int(round(data.shape[0] / float(n_steps)))
@@ -489,9 +500,10 @@ def space_sylinder(
 
     # Do all steps except the last one:
     for i in xrange(n_steps-1):
-        z = data[i*dpoints : (i+1)*dpoints, 2] + \
-            data[i*dpoints : (i+1)*dpoints, 0] * np.tan(np.pi*inclination/180.)
-            #TODO Take care of correct angle unit here.
+        z = (
+            data[i*dpoints : (i+1)*dpoints, 2] +
+            data[i*dpoints : (i+1)*dpoints, 0] * np.tan(inclination)
+        )
         densities[i] = (
             data[i*dpoints : (i+1)*dpoints, 3] *
             np.exp(- z / H)
