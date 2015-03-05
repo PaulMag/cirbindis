@@ -216,7 +216,7 @@ class DensityMap:
         self.data_rotated = np.hstack((coords_out, self.data[:, ~0, None]))
 
 
-    def add_3d_points(self, H, n_layers=None, dz=None, thickness=None, ratio=None):
+    def add_3d_points(self, H, n_layers=None, dz=None):
         """Expands a 2D-disk into 3rd (z) dimension assuming a simple model.
         TODO: Update this docstring.
 
@@ -243,12 +243,10 @@ class DensityMap:
         return: (float, array) The dataset with 2*n_layers*N more points added.
         """
 
-        if thickness is None:
-            thickness = - np.log(ratio) * H
         if n_layers is None:
-            n_layers = int(round(0.5 * thickness / dz))
+            n_layers = int(round(0.5 * self.radius_star / dz))
         elif dz is None:
-            dz = 0.5 * thickness / n_layers
+            dz = 0.5 * self.radius_star / n_layers
 
         N = self.data.shape[0]
         data_over = np.zeros((N*n_layers, 4))
@@ -334,8 +332,6 @@ class DensityMap:
         n_radius=None,
         dr=None,
         dz=None,
-        thickness=None,
-        ratio=None,
         save=False,
         show=False,
     ):
@@ -355,13 +351,6 @@ class DensityMap:
                 theta = 360. * 60
             elif unit == "arcsec":
                 theta = 360. * 3600
-
-        if thickness is None:
-            if ratio is None:
-                thickness = self.radius_star
-            else:
-                thickness = - np.log(ratio) * H
-
 
         if inclinations is None:
             inclinations = self.inclinations
@@ -394,13 +383,11 @@ class DensityMap:
             sylinder.add_3d_points(
                 H=H,
                 dz=dz,
-                thickness=thickness,
-                ratio=ratio,
             )
-            data3 = sylinder.get_sylinder()
+            sylinder.data = sylinder.get_sylinder()
             for j, inclination in enumerate(inclinations):
                 densities, drs = space_sylinder(
-                    data3,
+                    sylinder.data,
                     inclination=inclination,
                     n_steps=n_radius,
                     dr=dr,
@@ -415,11 +402,10 @@ class DensityMap:
         for j, inclination in enumerate(inclinations):
 
             title = (
-                "dz=%g, thickness=%g, H=%g, kappa=%g, "
+                "dz=%g, H=%g, kappa=%g, "
                 "r_star=%g, r_in=%g, r_out=%g, dr=%g, "
                 "dtheta=%g%s, inclination=%g%s"
                 % ( dz,
-                    thickness,
                     H,
                     kappa,
                     self.radius_star,
