@@ -305,13 +305,22 @@ class DensityMap:
 
         return: (float, array) The slice of the dataset contained in the sylinder.
         """
-        mask = (
-            (self.data_rotated[:, 0] > 0) *
-            (   np.linalg.norm(self.data_rotated[:, 1:3], axis=1) <=
-                self.radius_star
+        try:
+            mask = (
+                (self.data_rotated[:, 0] > 0) *
+                (   np.linalg.norm(self.data_rotated[:, 1:3], axis=1) <=
+                    self.radius_star
+                )
             )
-        )
-        data_sylinder = self.data_rotated[np.where(mask)]
+            data_sylinder = self.data_rotated[np.where(mask)]
+        except:
+            mask = (
+                (self.data[:, 0] > 0) *
+                (   np.linalg.norm(self.data[:, 1:3], axis=1) <=
+                    self.radius_star
+                )
+            )
+            data_sylinder = self.data[np.where(mask)]
         return data_sylinder
 
 
@@ -325,6 +334,7 @@ class DensityMap:
         n_radius=None,
         dr=None,
         dz=None,
+        thickness=None,
         ratio=None,
         save=False,
         show=False,
@@ -345,6 +355,13 @@ class DensityMap:
                 theta = 360. * 60
             elif unit == "arcsec":
                 theta = 360. * 3600
+
+        if thickness is None:
+            if ratio is None:
+                thickness = self.radius_star
+            else:
+                thickness = - np.log(ratio) * H
+
 
         if inclinations is None:
             inclinations = self.inclinations
@@ -377,16 +394,14 @@ class DensityMap:
             sylinder.add_3d_points(
                 H=H,
                 dz=dz,
+                thickness=thickness,
                 ratio=ratio,
             )
+            data3 = sylinder.get_sylinder()
             for j, inclination in enumerate(inclinations):
-                sylinder.rotate(
-                    angle_y=inclination,
-                    unit=unit,
-                )
-                data3 = sylinder.get_sylinder()
                 densities, drs = space_sylinder(
                     data3,
+                    inclination=inclination,
                     n_steps=n_radius,
                     dr=dr,
                     radius_in=self.radius_in,
@@ -404,7 +419,7 @@ class DensityMap:
                 "r_star=%g, r_in=%g, r_out=%g, dr=%g, "
                 "dtheta=%g%s, inclination=%g%s"
                 % ( dz,
-                    - np.log(ratio) * H,
+                    thickness,
                     H,
                     kappa,
                     self.radius_star,
@@ -447,6 +462,8 @@ class DensityMap:
 
 def space_sylinder(
     data,
+    inclination=0,
+    H=1.,
     n_steps=None,
     dr=None,
     radius_in=None,
@@ -470,9 +487,9 @@ def space_sylinder(
         of disk.
     """
 
-    print "Spacing sylinder...",
-    sys.stdout.flush()
-    t_start = time.time()
+    # print "Spacing sylinder...",
+    # sys.stdout.flush()
+    # t_start = time.time()
 
     if n_steps is None:
         n_steps = int(round((radius_out-radius_in) / dr))
@@ -486,7 +503,13 @@ def space_sylinder(
 
     # Do all steps except the last one:
     for i in xrange(n_steps-1):
-        densities[i] = data[i*dpoints : (i+1)*dpoints, 3].mean()
+        z = data[i*dpoints : (i+1)*dpoints, 2] + \
+            data[i*dpoints : (i+1)*dpoints, 0] * np.tan(np.pi*inclination/180.)
+            #TODO Take care of correct angle unit here.
+        densities[i] = (
+            data[i*dpoints : (i+1)*dpoints, 3] *
+            np.exp(- z / H)
+        ).mean()
         drs[i] = data[(i+1)*dpoints, 0] - data[i*dpoints, 0]
     # Do the last step:
     densities[~0] = data[(n_steps-1)*dpoints : , 3].mean()
@@ -494,9 +517,9 @@ def space_sylinder(
     s = data[(n_steps-1)*dpoints :].shape[0]
     drs[~0] *= (s + 1.) / s
 
-    t_end = time.time()
-    print "done! It took %f seconds." % (t_end - t_start)
-    sys.stdout.flush()
+    # t_end = time.time()
+    # print "done! It took %f seconds." % (t_end - t_start)
+    # sys.stdout.flush()
     return densities, drs
 
 
