@@ -384,6 +384,7 @@ class DensityMap:
             for j, inclination in enumerate(inclinations):
                 densities, drs = space_sylinder(
                     sylinder.data,
+                    self.radius_star,
                     inclination=inclination,
                     n_steps=n_radius,
                     dr=dr,
@@ -444,6 +445,7 @@ class DensityMap:
 
 def space_sylinder(
     data,
+    radius_star,
     inclination=0,
     unit="deg",
     H=1.,
@@ -492,7 +494,6 @@ def space_sylinder(
 
     # Do all steps except the last one:
     y0 = 0
-    radius_star = 0.75  #TODO This shouldn't be hardcoded here.
     for i in xrange(n_steps):
         start = i*dpoints
         if i == n_steps-1:
