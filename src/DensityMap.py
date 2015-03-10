@@ -490,7 +490,6 @@ def space_sylinder(
 
     data = data[np.argsort(data[:, 0])]
 
-    # Do all steps except the last one:
     y0 = 0
     for i in xrange(n_steps):
         start = i*dpoints
@@ -517,7 +516,7 @@ def space_sylinder(
             data[start:end, 3] *
             H *
             (np.exp(- z1 / H) - np.exp(- z2 / H))
-        ).mean() / (2 * np.sum(W))
+        ).sum() / (2 * np.sum(W))
 
     return densities, drs
 
