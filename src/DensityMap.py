@@ -331,7 +331,6 @@ class DensityMap:
         unit="deg",
         n_radius=None,
         dr=None,
-        dz=None,
         save=False,
         show=False,
     ):
@@ -399,11 +398,10 @@ class DensityMap:
         for j, inclination in enumerate(inclinations):
 
             title = (
-                "dz=%g, H=%g, kappa=%g, "
+                "H=%g, kappa=%g, "
                 "r_star=%g, r_in=%g, r_out=%g, dr=%g, "
                 "dtheta=%g%s, inclination=%g%s"
-                % ( dz,
-                    H,
+                % ( H,
                     kappa,
                     self.radius_star,
                     self.radius_in,
