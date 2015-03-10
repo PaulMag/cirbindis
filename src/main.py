@@ -8,13 +8,11 @@ if __name__ == "__main__":
     radius_in = 1.0
     radius_out = 3.5
     n_radius = 10
-    n_angle = 6
+    n_angle = 72
     inclinations = [0, 30]
     unit = "deg"
     kappa = 1.
     H = 1.
-    dz = .2
-    ratio = .2
     filename = "../data/data_cropped.p"
 
     for radius_out in [3.0]:
@@ -29,8 +27,6 @@ if __name__ == "__main__":
             n_angle=n_angle,
             n_radius=n_radius,
             unit=unit,
-            dz=dz,
-            ratio=ratio,
             show=True,
         )
 
