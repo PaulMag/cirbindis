@@ -12,6 +12,9 @@ import time
 import matplotlib.pyplot as plt
     # For plotting results.
 
+from Star import Star
+
+
 kappa = 1.
 
 
@@ -23,7 +26,6 @@ class DensityMap:
         data=None,
         filename=None,
         inclinations=None,
-        radius_star=None,
         radius_in=0,
         radius_out=np.inf,
     ):
@@ -35,7 +37,7 @@ class DensityMap:
             self.inclinations = inclinations
         except TypeError:
             self.inclinations = [inclinations]
-        self.radius_star = radius_star
+        self.stars = []
         self.radius_in = radius_in
         self.radius_out = radius_out
 
@@ -51,6 +53,11 @@ class DensityMap:
 
         elif filename is not None:
             self.load(filename)
+
+
+    def add_star(self, position, radius, intensity):
+        """TODO: Write this docstring."""
+        self.stars.append(Star(position, radius, intensity))
 
 
     def load(self,
@@ -216,6 +223,11 @@ class DensityMap:
             np.asarray(rotation_matrix * coords_in.transpose()).transpose()
         self.data_rotated = np.hstack((coords_out, self.data[:, ~0, None]))
 
+        # for star in self.stars:
+            # self.position_rotated = np.asarray(
+                # rotation_matrix * star.position.transpose()
+            # ).transpose()
+
 
     def distance(self, p1, p2=None):
         """Returns the distances from a set of points to a line.
@@ -254,22 +266,14 @@ class DensityMap:
 
         return: (float, array) The slice of the dataset contained in the sylinder.
         """
-        try:
-            mask = (
-                (self.data_rotated[:, 0] > 0) *
-                (   np.linalg.norm(self.data_rotated[:, 1:3], axis=1) <=
-                    self.radius_star
-                )
+        #TODO One for each star.
+        mask = (
+            (self.data_rotated[:, 0] > 0) *
+            (   np.linalg.norm(self.data_rotated[:, 1:3], axis=1) <=
+                self.stars[0].radius
             )
-            data_sylinder = self.data_rotated[np.where(mask)]
-        except:
-            mask = (
-                (self.data[:, 0] > 0) *
-                (   np.linalg.norm(self.data[:, 1:3], axis=1) <=
-                    self.radius_star
-                )
-            )
-            data_sylinder = self.data[np.where(mask)]
+        )
+        data_sylinder = self.data_rotated[np.where(mask)]
         return data_sylinder
 
 
@@ -347,9 +351,10 @@ class DensityMap:
                 angle_z=angle,
                 unit=unit,
             )
+            #TODO One for each star.
             sylinder = Sylinder(
-                self.get_sylinder(),
-                radius_star=self.radius_star,
+                star=self.stars[0],
+                data=self.get_sylinder(),
                 radius_in=self.radius_in,
                 radius_out=self.radius_out,
             )
@@ -372,7 +377,8 @@ class DensityMap:
                 "dtheta=%g%s, inclination=%g%s"
                 % ( H,
                     kappa,
-                    self.radius_star,
+                    #TODO One for each star.
+                    self.stars[0].radius,
                     self.radius_in,
                     self.radius_out,
                     (self.radius_out - self.radius_in) / n_radius,
@@ -411,6 +417,34 @@ class DensityMap:
 
 
 class Sylinder(DensityMap):
+
+
+    def __init__(self,
+        star,
+        data,
+        inclinations=None,
+        radius_in=0,
+        radius_out=np.inf,
+    ):
+
+        # If the inclination is a single number, put it in a list:
+        try:
+            iter(inclinations)
+            self.inclinations = inclinations
+        except TypeError:
+            self.inclinations = [inclinations]
+        self.star = star
+        self.radius_in = radius_in
+        self.radius_out = radius_out
+
+        if data.shape[1] == 4:
+            self.data = data
+        elif data.shape[1] == 3:
+            self.data = np.vstack((
+                data[:, 0:2],
+                np.zeros(data.shape[0]),
+                data[:, 2, None],
+            ))
 
 
     def space_sylinder(self,
@@ -473,7 +507,7 @@ class Sylinder(DensityMap):
                 end = (i+1)*dpoints
                 drs[i] = data[end, 0] - data[start, 0]
             W = np.sqrt(
-                self.radius_star**2 -
+                self.star.radius**2 -
                 (data[start:end, 1] - y0)**2
             ) / np.cos(inclination)
             z = (
@@ -503,7 +537,7 @@ class Sylinder(DensityMap):
         return: (float) Perceived intensity outside the disk
         """
 
-        intensity = 1.  # Or whatever the full intensity of the star is.
+        intensity = self.star.intensity
 
         for density, dr in zip(self.densities, self.drs):
             tau = kappa * density * dr
