@@ -331,7 +331,6 @@ class DensityMap:
         unit="deg",
         n_radius=None,
         dr=None,
-        dz=None,
         save=False,
         show=False,
     ):
@@ -380,14 +379,11 @@ class DensityMap:
                 radius_in=self.radius_in,
                 radius_out=self.radius_out,
             )
-            sylinder.add_3d_points(
-                H=H,
-                dz=dz,
-            )
             sylinder.data = sylinder.get_sylinder()
             for j, inclination in enumerate(inclinations):
                 densities, drs = space_sylinder(
                     sylinder.data,
+                    self.radius_star,
                     inclination=inclination,
                     n_steps=n_radius,
                     dr=dr,
@@ -402,11 +398,10 @@ class DensityMap:
         for j, inclination in enumerate(inclinations):
 
             title = (
-                "dz=%g, H=%g, kappa=%g, "
+                "H=%g, kappa=%g, "
                 "r_star=%g, r_in=%g, r_out=%g, dr=%g, "
                 "dtheta=%g%s, inclination=%g%s"
-                % ( dz,
-                    H,
+                % ( H,
                     kappa,
                     self.radius_star,
                     self.radius_in,
@@ -448,6 +443,7 @@ class DensityMap:
 
 def space_sylinder(
     data,
+    radius_star,
     inclination=0,
     unit="deg",
     H=1.,
@@ -474,10 +470,6 @@ def space_sylinder(
         of disk.
     """
 
-    # print "Spacing sylinder...",
-    # sys.stdout.flush()
-    # t_start = time.time()
-
     if unit == "rad":
         factor = 1.
     elif unit == "deg":
@@ -498,26 +490,34 @@ def space_sylinder(
 
     data = data[np.argsort(data[:, 0])]
 
-    # Do all steps except the last one:
-    for i in xrange(n_steps-1):
-        z = (
-            data[i*dpoints : (i+1)*dpoints, 2] +
-            data[i*dpoints : (i+1)*dpoints, 0] * np.tan(inclination)
+    y0 = 0
+    for i in xrange(n_steps):
+        start = i*dpoints
+        if i == n_steps-1:
+            # If it is the last step, make sure the last few points are
+            # included (in case there are some rounding problems).
+            end = data.shape[0]
+            drs[i] = data[end-1, 0] - data[start, 0]
+            s = data[start:end].shape[0]
+            drs[i] *= (s + 1.) / s
+        else:
+            end = (i+1)*dpoints
+            drs[i] = data[end, 0] - data[start, 0]
+        W = np.sqrt(
+            radius_star**2 -
+            (data[start:end, 1] - y0)**2
         )
+        z = (
+            data[start:end, 0] * np.tan(inclination)
+        )
+        z1 = z - W
+        z2 = z + W
         densities[i] = (
-            data[i*dpoints : (i+1)*dpoints, 3] *
-            np.exp(- z / H)
-        ).mean()
-        drs[i] = data[(i+1)*dpoints, 0] - data[i*dpoints, 0]
-    # Do the last step:
-    densities[~0] = data[(n_steps-1)*dpoints : , 3].mean()
-    drs[~0] = data[~0, 0] - data[(n_steps-1)*dpoints, 0]
-    s = data[(n_steps-1)*dpoints :].shape[0]
-    drs[~0] *= (s + 1.) / s
+            data[start:end, 3] *
+            H *
+            (np.exp(- z1 / H) - np.exp(- z2 / H))
+        ).sum() / (2 * np.sum(W))
 
-    # t_end = time.time()
-    # print "done! It took %f seconds." % (t_end - t_start)
-    # sys.stdout.flush()
     return densities, drs
 
 
