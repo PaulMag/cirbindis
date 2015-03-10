@@ -272,6 +272,29 @@ class DensityMap:
         return data_sylinder
 
 
+    def get_density_profile(self, sigma=1, skip=2000, show=True):
+        """TODO: Write this docstring."""
+
+        from scipy.ndimage.filters import gaussian_filter1d
+
+        radiuses = np.linalg.norm(self.data[:, 0:2], axis=1)
+        indices_sorted = np.argsort(radiuses)
+        radiuses = radiuses[indices_sorted][::skip]
+        densities = gaussian_filter1d(
+            self.data[:, 3][indices_sorted],
+            sigma=sigma,
+            mode="nearest",
+        )[::skip]
+
+        if show:
+            plt.plot(radiuses, densities, "b+")
+            plt.xlabel("density")
+            plt.ylabel("radius")
+            plt.show()
+
+        return radiuses, densities
+
+
     def make_lightcurve(self,
         inclinations=None,
         H=1.,
