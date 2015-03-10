@@ -23,7 +23,6 @@ class DensityMap:
         data=None,
         filename=None,
         inclinations=None,
-        r0=1.,
         radius_star=None,
         radius_in=0,
         radius_out=np.inf,
@@ -36,7 +35,6 @@ class DensityMap:
             self.inclinations = inclinations
         except TypeError:
             self.inclinations = [inclinations]
-        self.r0 = r0
         self.radius_star = radius_star
         self.radius_in = radius_in
         self.radius_out = radius_out
@@ -151,19 +149,22 @@ class DensityMap:
         print "Writing took %f seconds." % (t_end - t_start)
 
 
-    def set_H(self, H0, H_power):
+    def set_r0(self, r0=1.49597871e13):
+        self.r0=r0  # [centimeters]
+
+    def set_H(self, H0=0.03, H_power=1/4.):
         self.H0 = H0
         self.H_power = H_power
 
     def get_H(self, r):
-        return self.H0 * (r / self.r0)**self.H_power
+        return r * self.H0 * (r / self.r0)**self.H_power  # [centimeters]
 
-    def set_sigma(self, sigma0, sigma_power):
+    def set_sigma(self, sigma0=1700., sigma_power=-3/2.):
         self.sigma0 = sigma0
         self.sigma_power = sigma_power
 
     def get_sigma(self, r):
-        return self.sigma0 * (r / self.r0)**self.sigma_power
+        return self.sigma0 * (r / self.r0)**self.sigma_power  # [g / cm^2]
 
 
     def rotate(self, angle_z=0, angle_y=0, angle_x=None, unit="deg"):
@@ -288,8 +289,8 @@ class DensityMap:
 
         if show:
             plt.plot(radiuses, densities, "b+")
-            plt.xlabel("density")
-            plt.ylabel("radius")
+            plt.xlabel("radius")
+            plt.ylabel("density")
             plt.show()
 
         return radiuses, densities
