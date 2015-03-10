@@ -347,23 +347,19 @@ class DensityMap:
                 angle_z=angle,
                 unit=unit,
             )
-            sylinder = DensityMap(
+            sylinder = Sylinder(
                 self.get_sylinder(),
                 radius_star=self.radius_star,
                 radius_in=self.radius_in,
                 radius_out=self.radius_out,
             )
             for j, inclination in enumerate(inclinations):
-                densities, drs = space_sylinder(
-                    sylinder.data,
-                    self.radius_star,
+                sylinder.space_sylinder(
                     inclination=inclination,
                     n_steps=n_radius,
                     dr=dr,
-                    radius_in=self.radius_in,
-                    radius_out=self.radius_out,
                 )
-                lightcurve[j, i] = integrate(densities, drs)
+                lightcurve[j, i] = sylinder.integrate()
         print "%f / %f" % (theta, theta)
 
         lightcurve /= lightcurve.mean(axis=1)[:, None]
@@ -414,101 +410,103 @@ class DensityMap:
 
 
 
-def space_sylinder(
-    data,
-    radius_star,
-    inclination=0,
-    unit="deg",
-    H=1.,
-    n_steps=None,
-    dr=None,
-    radius_in=None,
-    radius_out=None,
-):
-    """Bin a (sylinder shaped) set of datapoints into a set of mean densities.
-
-    The sylinder is first sorted along the x-axis and is then cut along the
-    x-axis like a loaf of bread. The mean density is then computed from each
-    slice of the sylinder/bread.
-
-    This method is the one using most time in this program.
-
-    TODO: Decide on how to organize the other arguments.
-    data: (float, array) The dataset to be binned. Array of shape (N, 4),
-        where N is the number of datapoints.
-
-    return: (float, array), (float, array) A list of mean densities and the
-        corresponding list of delta radiuses for each bin. Both are arrays of
-        length n_step. The arrays are order FROM inside of disk TO oustide
-        of disk.
-    """
-
-    if unit == "rad":
-        factor = 1.
-    elif unit == "deg":
-        factor = np.pi / 180.
-    elif unit == "arcmin":
-        factor = np.pi / 180. * 60
-    elif unit == "arcsec":
-        factor = np.pi / 180. * 3600
-    inclination *= factor
-
-    if n_steps is None:
-        n_steps = int(round((radius_out-radius_in) / dr))
-    dpoints = int(round(data.shape[0] / float(n_steps)))
-        # How many datapoints to include in each bin.
-
-    densities = np.zeros(n_steps)
-    drs = np.zeros(n_steps)
-
-    data = data[np.argsort(data[:, 0])]
-
-    y0 = 0
-    for i in xrange(n_steps):
-        start = i*dpoints
-        if i == n_steps-1:
-            # If it is the last step, make sure the last few points are
-            # included (in case there are some rounding problems).
-            end = data.shape[0]
-            drs[i] = data[end-1, 0] - data[start, 0]
-            s = data[start:end].shape[0]
-            drs[i] *= (s + 1.) / s
-        else:
-            end = (i+1)*dpoints
-            drs[i] = data[end, 0] - data[start, 0]
-        W = np.sqrt(
-            radius_star**2 -
-            (data[start:end, 1] - y0)**2
-        ) / np.cos(inclination)
-        z = (
-            data[start:end, 0] * np.tan(inclination)
-        )
-        z1 = z - W
-        z2 = z + W
-        densities[i] = (
-            data[start:end, 3] *
-            H *
-            (np.exp(- z1 / H) - np.exp(- z2 / H))
-        ).sum() / (2 * np.sum(W))
-
-    return densities, drs
+class Sylinder(DensityMap):
 
 
-def integrate(densities, drs):
-    """Integrates the intensity through the layers of dust.
+    def space_sylinder(self,
+        inclination=0,
+        unit="deg",
+        H=1.,
+        n_steps=None,
+        dr=None,
+    ):
+        """Bin a (sylinder shaped) set of datapoints into a set of mean densities.
+        TODO: Update this docstring.
 
-    densities: (float, array) List of (mean) densities through a field of
-        view of the disk, ordered from inside to outside.
-    drs: (float, array) List of the corresponding dr to each density
-        measurement.
+        The sylinder is first sorted along the x-axis and is then cut along the
+        x-axis like a loaf of bread. The mean density is then computed from each
+        slice of the sylinder/bread.
 
-    return: (float) Perceived intensity outside the disk
-    """
+        This method is the one using most time in this program.
 
-    intensity = 1.  # Or whatever the full intensity of the star is.
+        TODO: Decide on how to organize the other arguments.
+        data: (float, array) The dataset to be binned. Array of shape (N, 4),
+            where N is the number of datapoints.
 
-    for density, dr in zip(densities, drs):
-        tau = kappa * density * dr
-        intensity *= np.exp(-tau)
+        return: (float, array), (float, array) A list of mean densities and the
+            corresponding list of delta radiuses for each bin. Both are arrays of
+            length n_step. The arrays are order FROM inside of disk TO oustide
+            of disk.
+        """
 
-    return intensity
+        if unit == "rad":
+            factor = 1.
+        elif unit == "deg":
+            factor = np.pi / 180.
+        elif unit == "arcmin":
+            factor = np.pi / 180. * 60
+        elif unit == "arcsec":
+            factor = np.pi / 180. * 3600
+        inclination *= factor
+
+        if n_steps is None:
+            n_steps = int(round((self.radius_out - self.radius_in) / dr))
+        dpoints = int(round(self.data.shape[0] / float(n_steps)))
+            # How many datapoints to include in each bin.
+
+        densities = np.zeros(n_steps)
+        drs = np.zeros(n_steps)
+
+        data = self.data[np.argsort(self.data[:, 0])]
+
+        y0 = 0
+        for i in xrange(n_steps):
+            start = i*dpoints
+            if i == n_steps-1:
+                # If it is the last step, make sure the last few points are
+                # included (in case there are some rounding problems).
+                end = data.shape[0]
+                drs[i] = data[end-1, 0] - data[start, 0]
+                s = data[start:end].shape[0]
+                drs[i] *= (s + 1.) / s
+            else:
+                end = (i+1)*dpoints
+                drs[i] = data[end, 0] - data[start, 0]
+            W = np.sqrt(
+                self.radius_star**2 -
+                (data[start:end, 1] - y0)**2
+            ) / np.cos(inclination)
+            z = (
+                data[start:end, 0] * np.tan(inclination)
+            )
+            z1 = z - W
+            z2 = z + W
+            densities[i] = (
+                data[start:end, 3] *
+                H *
+                (np.exp(- z1 / H) - np.exp(- z2 / H))
+            ).sum() / (2 * np.sum(W))
+
+        self.densities = densities
+        self.drs = drs
+
+
+    def integrate(self):
+        """Integrates the intensity through the layers of dust.
+        TODO: Update this docstring.
+
+        densities: (float, array) List of (mean) densities through a field of
+            view of the disk, ordered from inside to outside.
+        drs: (float, array) List of the corresponding dr to each density
+            measurement.
+
+        return: (float) Perceived intensity outside the disk
+        """
+
+        intensity = 1.  # Or whatever the full intensity of the star is.
+
+        for density, dr in zip(self.densities, self.drs):
+            tau = kappa * density * dr
+            intensity *= np.exp(-tau)
+
+        return intensity
