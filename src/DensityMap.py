@@ -353,7 +353,6 @@ class DensityMap:
                 radius_in=self.radius_in,
                 radius_out=self.radius_out,
             )
-            sylinder.data = sylinder.get_sylinder()
             for j, inclination in enumerate(inclinations):
                 densities, drs = space_sylinder(
                     sylinder.data,
