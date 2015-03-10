@@ -19,15 +19,19 @@ if __name__ == "__main__":
         dataset = DensityMap(
             filename=filename,
             inclinations=inclinations,
-            radius_star=radius_star,
             radius_in=radius_in,
             radius_out=radius_out,
         )
+        dataset.add_star([0, 0, 0], radius_star, 1.)
         dataset.make_lightcurve(
             n_angle=n_angle,
             n_radius=n_radius,
             unit=unit,
             show=True,
         )
+        # dataset.set_r0()
+        # dataset.set_H()
+        # dataset.set_sigma()
+        # dataset.get_density_profile()
 
     # dataset.writeto(filename)
