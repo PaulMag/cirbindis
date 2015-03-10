@@ -216,56 +216,6 @@ class DensityMap:
         self.data_rotated = np.hstack((coords_out, self.data[:, ~0, None]))
 
 
-    def add_3d_points(self, H, n_layers=None, dz=None):
-        """Expands a 2D-disk into 3rd (z) dimension assuming a simple model.
-        TODO: Update this docstring.
-
-        z-coordinate must be 0 for every point in data. If the dataset is already
-        3-dimensional then you NEED not and MUST not use this method. You must
-        use this method BEFORE any rotation around x- or y-axis, NOT AFTER.
-        Rotations around z-axis does not matter, as they do not alter z-data.
-
-        Note that this method multiplies the size of the dataset provided, so
-        the returned data can be very large.
-
-
-        H: (float) A physical parameter. We assume it to be a constant.
-        n_layers: (int) How many data layers to add to EACH side of the disk.
-            The total number of layers in z-direction becomes 2*n_layers+1.
-        dz: (float) Distance between each layer.
-        thickness: (float) Total thickness of disk to provide data for. This
-            argument can be given instead of either n_layers or dz. If both
-            n_layers and dz are provided then thickness is ignored.
-        ratio: (float) Automatically choose a thickness so the outer layers have
-            a density of ratio*density_z0. If more than 1 of n_layers, dz,
-            thickness are provided then ratio is ignored.
-
-        return: (float, array) The dataset with 2*n_layers*N more points added.
-        """
-
-        if n_layers is None:
-            n_layers = int(round(0.5 * self.radius_star / dz))
-        elif dz is None:
-            dz = 0.5 * self.radius_star / n_layers
-
-        N = self.data.shape[0]
-        data_over = np.zeros((N*n_layers, 4))
-
-        for k in xrange(1, n_layers+1):
-            data_over[(k-1)*N : k*N, 0:2] = self.data[:, 0:2]
-            data_over[(k-1)*N : k*N, 2] = k * dz
-            data_over[(k-1)*N : k*N, 3] = self.data[:, 3] * np.exp(- k * dz / H)
-        data_under = data_over.copy()
-        data_under[:, 2] *= -1
-
-        print (
-            "%d layers added on each side of the disk. "
-            "Size of dataset is increased from %d to %d points."
-            % (n_layers, self.data.shape[0], (2*n_layers+1)*self.data.shape[0])
-        )
-        self.data =  np.vstack((self.data, data_over, data_under))
-
-
     def distance(self, p1, p2=None):
         """Returns the distances from a set of points to a line.
         TODO: Update this docstring.
