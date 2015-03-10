@@ -456,7 +456,7 @@ def space_sylinder(
         W = np.sqrt(
             radius_star**2 -
             (data[start:end, 1] - y0)**2
-        )
+        ) / np.cos(inclination)
         z = (
             data[start:end, 0] * np.tan(inclination)
         )
