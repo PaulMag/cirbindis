@@ -223,10 +223,10 @@ class DensityMap:
             np.asarray(rotation_matrix * coords_in.transpose()).transpose()
         self.data_rotated = np.hstack((coords_out, self.data[:, ~0, None]))
 
-        # for star in self.stars:
-            # self.position_rotated = np.asarray(
-                # rotation_matrix * star.position.transpose()
-            # ).transpose()
+        for star in self.stars:
+            star.position_rotated = np.asarray(
+                rotation_matrix * star.position[:, None]
+            ).transpose()[0]
 
 
     def distance(self, p1, p2=None):
@@ -248,13 +248,16 @@ class DensityMap:
             p2 = p1.copy()
             p2[0] += 1.
         return np.linalg.norm(
-            np.cross(p1 - self.data[:, :~0], p2 - self.data[:, :~0]) /
+            np.cross(
+                p1 - self.data_rotated[:, :~0],
+                p2 - self.data_rotated[:, :~0],
+            ) /
             np.linalg.norm(p2 - p1),
             axis=1,
         )
 
 
-    def get_sylinder(self):
+    def get_sylinder(self, starno=None, star=None):
         """Slice out a sylinder shape from a set of datapoints.
         TODO: Update this docstring.
 
@@ -266,12 +269,13 @@ class DensityMap:
 
         return: (float, array) The slice of the dataset contained in the sylinder.
         """
-        #TODO One for each star.
+
+        if star is None:
+            star = self.stars[starno]
+
         mask = (
             (self.data_rotated[:, 0] > 0) *
-            (   np.linalg.norm(self.data_rotated[:, 1:3], axis=1) <=
-                self.stars[0].radius
-            )
+            (self.distance(star.position) <= star.radius)
         )
         data_sylinder = self.data_rotated[np.where(mask)]
         return data_sylinder
@@ -351,20 +355,20 @@ class DensityMap:
                 angle_z=angle,
                 unit=unit,
             )
-            #TODO One for each star.
-            sylinder = Sylinder(
-                star=self.stars[0],
-                data=self.get_sylinder(),
-                radius_in=self.radius_in,
-                radius_out=self.radius_out,
-            )
-            for j, inclination in enumerate(inclinations):
-                sylinder.space_sylinder(
-                    inclination=inclination,
-                    n_steps=n_radius,
-                    dr=dr,
+            for k, star in enumerate(self.stars):
+                sylinder = Sylinder(
+                    star=star,
+                    data=self.get_sylinder(star=star),
+                    radius_in=self.radius_in,
+                    radius_out=self.radius_out,
                 )
-                lightcurve[j, i] = sylinder.integrate()
+                for j, inclination in enumerate(inclinations):
+                    sylinder.space_sylinder(
+                        inclination=inclination,
+                        n_steps=n_radius,
+                        dr=dr,
+                    )
+                    lightcurve[j, i] += sylinder.integrate()
         print "%f / %f" % (theta, theta)
 
         lightcurve /= lightcurve.mean(axis=1)[:, None]
@@ -493,7 +497,6 @@ class Sylinder(DensityMap):
 
         data = self.data[np.argsort(self.data[:, 0])]
 
-        y0 = 0
         for i in xrange(n_steps):
             start = i*dpoints
             if i == n_steps-1:
@@ -508,7 +511,7 @@ class Sylinder(DensityMap):
                 drs[i] = data[end, 0] - data[start, 0]
             W = np.sqrt(
                 self.star.radius**2 -
-                (data[start:end, 1] - y0)**2
+                (data[start:end, 1] - self.star.position[1])**2
             ) / np.cos(inclination)
             z = (
                 data[start:end, 0] * np.tan(inclination)
