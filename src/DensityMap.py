@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
     # For plotting results.
 
 from Star import Star
+import Functions as func
 
 
 
@@ -336,10 +337,7 @@ class DensityMap:
         if inclinations is None:
             inclinations = self.inclinations
         # If the inclination is a single number, put it in a list:
-        try:
-            iter(inclinations)
-        except TypeError:
-            inclinations = [inclinations]
+        inclinations = func.to_list(inclinations)
 
         if n_angle is None:
             n_angle = int(round(float(theta) / dtheta))
