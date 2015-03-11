@@ -15,9 +15,6 @@ import matplotlib.pyplot as plt
 from Star import Star
 
 
-kappa = 1.
-
-
 
 class DensityMap:
 
@@ -28,6 +25,7 @@ class DensityMap:
         inclinations=None,
         radius_in=0,
         radius_out=np.inf,
+        kappa=10.
     ):
 
         self.data_rotated = None
@@ -40,6 +38,8 @@ class DensityMap:
         self.stars = []
         self.radius_in = radius_in
         self.radius_out = radius_out
+        self.kappa = kappa  # [cm^2 / g]
+            # Between 5 and 100 according to Boubier et al. 1999.
 
         if data is not None:
             if data.shape[1] == 4:
@@ -361,6 +361,7 @@ class DensityMap:
                     data=self.get_sylinder(star=star),
                     radius_in=self.radius_in,
                     radius_out=self.radius_out,
+                    kappa=self.kappa
                 )
                 for j, inclination in enumerate(inclinations):
                     sylinder.space_sylinder(
@@ -380,7 +381,7 @@ class DensityMap:
                 "r_star=%g, r_in=%g, r_out=%g, dr=%g, "
                 "dtheta=%g%s, inclination=%g%s"
                 % ( H,
-                    kappa,
+                    self.kappa,
                     #TODO One for each star.
                     self.stars[0].radius,
                     self.radius_in,
@@ -429,6 +430,7 @@ class Sylinder(DensityMap):
         inclinations=None,
         radius_in=0,
         radius_out=np.inf,
+        kappa=10.
     ):
 
         # If the inclination is a single number, put it in a list:
@@ -440,6 +442,8 @@ class Sylinder(DensityMap):
         self.star = star
         self.radius_in = radius_in
         self.radius_out = radius_out
+        self.kappa = kappa  # [cm^2 / g]
+
 
         if data.shape[1] == 4:
             self.data = data
@@ -543,7 +547,7 @@ class Sylinder(DensityMap):
         intensity = self.star.intensity
 
         for density, dr in zip(self.densities, self.drs):
-            tau = kappa * density * dr
+            tau = self.kappa * density * dr
             intensity *= np.exp(-tau)
 
         return intensity
