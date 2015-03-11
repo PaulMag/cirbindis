@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<input>
+
+    <!--The units provided here are the units of the input values provided
+        in this document, except for kappa. The output values are always in
+        CGS-units.
+    -->
+    <unit>
+        <mass>solar</mass>
+        <distance>1.5e10 kg</distance>
+        <intensity>jansky?</intensity>
+        <azimuth>deg</azimuth>
+        <inclination>deg</inclination>
+    </unit>
+
+    <datafile>data/data_cropped.p</datafile>
+    <radius_in>1.</radius_in>
+    <!--There can be one or more different outer radiuses.
+        They will be analyzed separately and produce separate lightcurves.
+    -->
+    <radius_out>3.</radius_out>
+    <!--There can be one or more different inclinations.
+        They will be analyzed separately and produce separate lightcurves.
+    -->
+    <inclination>0</inclination>
+    <inclination>10</inclination>
+    <inclination>30</inclination>
+    <diskmass>0.01</diskmass>
+    <kappa>10.</kappa> <!--[cm^2/g]-->
+    <H0>0.1</H0>
+
+    <!--There can be one or more stars with different positions.
+        They will be integrated separately and have their resulting
+        intensities added together.
+    -->
+    <star>
+        <position>
+            <!--cartesian (x,y) or polar (r,theta)-->
+            <x>-0.5</x>
+            <y>0</y>
+        </position>
+        <radius>0.21</radius>
+        <intensity>1.1</intensity>
+    </star>
+    <star>
+        <position>
+            <x>0.5</x>
+            <y>0</y>
+        </position>
+        <radius>0.19</radius>
+        <intensity>0.9</intensity>
+    </star>
+
+    <!--Numerical parameters-->
+    <azimuthsteps>18</azimuthsteps> <!--dtheta = 2pi or 360deg / azimuthsteps-->
+    <radiussteps>10</radiussteps> <!--dr = (r_out - r_in) / radiussteps-->
+
+</input>
