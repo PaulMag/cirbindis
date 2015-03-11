@@ -1,32 +1,36 @@
+import xmltodict
+
 from DensityMap import DensityMap
+import Functions as func
 
 
 if __name__ == "__main__":
-    """Everything under this should just be considered a test block for now."""
 
-    radius_star = .75
-    radius_in = 1.0
-    radius_out = 3.5
-    n_radius = 10
-    n_angle = 72
-    inclinations = [0, 30]
-    unit = "deg"
-    kappa = 1.
-    H = 1.
-    filename = "../data/data_cropped.p"
+    infile = open("input.xml", "r")
+    input_ = xmltodict.parse(infile)["input"]
+    infile.close()
 
-    for radius_out in [3.0]:
+    for radius_out in func.to_list(input_["radius_out"], float):
         dataset = DensityMap(
-            filename=filename,
-            inclinations=inclinations,
-            radius_in=radius_in,
+            filename=input_["datafile"],
+            inclinations=func.to_list(input_["inclination"], float),
+            radius_in=float(input_["radius_in"]),
             radius_out=radius_out,
+            kappa=float(input_["kappa"]),
         )
-        dataset.add_star([0, 0, 0], radius_star, 1.)
+        for star in func.to_list(input_["star"]):
+            dataset.add_star(
+                [   float(star["position"]["x"]),
+                    float(star["position"]["y"]),
+                    0,
+                ],
+                float(star["radius"]),
+                float(star["intensity"]),
+            )
         dataset.make_lightcurve(
-            n_angle=n_angle,
-            n_radius=n_radius,
-            unit=unit,
+            n_angle=int(input_["azimuthsteps"]),
+            n_radius=int(input_["radiussteps"]),
+            unit=input_["unit"]["inclination"],
             show=True,
         )
         # dataset.set_r0()
