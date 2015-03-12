@@ -56,9 +56,11 @@ class DensityMap:
             self.load(filename)
 
 
-    def add_star(self, position, radius, intensity):
+    def add_star(self, d=None, position=None, radius=None, intensity=None):
         """TODO: Write this docstring."""
-        self.stars.append(Star(position, radius, intensity))
+        self.stars.append(Star(
+            d=d, position=position, radius=radius, intensity=intensity
+        ))
 
 
     def load(self,

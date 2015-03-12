@@ -19,14 +19,7 @@ if __name__ == "__main__":
             kappa=float(input_["kappa"]),
         )
         for star in func.to_list(input_["star"]):
-            dataset.add_star(
-                [   float(star["position"]["x"]),
-                    float(star["position"]["y"]),
-                    0,
-                ],
-                float(star["radius"]),
-                float(star["intensity"]),
-            )
+            dataset.add_star(star)
         dataset.make_lightcurve(
             n_angle=int(input_["azimuthsteps"]),
             n_radius=int(input_["radiussteps"]),
