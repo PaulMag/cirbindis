@@ -1,11 +1,12 @@
 import numpy as np
 
-def to_list(x, dtype=None):
-    try:
-        iter(x)
-        if isinstance(x, basestring):
-            raise TypeError
-        x = np.array(x, dtype=dtype)
-    except TypeError:
-        x = np.array([x], dtype=dtype)
+def to_list(x, dtype=None, separator=" "):
+    if isinstance(x, basestring):
+        np.array(x.split(separator), dtype=dtype)
+    else:
+        try:
+            iter(x)
+            x = np.array(x, dtype=dtype)
+        except TypeError:
+            x = np.array([x], dtype=dtype)
     return x
