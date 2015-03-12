@@ -8,6 +8,14 @@ class Star:
 
 
     def __init__(self, d=None, position=None, radius=None, intensity=None):
+        """Make a star instance.
+
+        d: (dictionairy) Must contain position, radius and intensity and can
+            be provided instead of giving these other arguments individually.
+        position: (float, array-like) Coordinates of the star.
+        radius: (float) Radius of the star.
+        intensity: (float) Intensity of the star.
+        """
 
         if d is not None:
             try:

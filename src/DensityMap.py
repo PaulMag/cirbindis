@@ -57,7 +57,14 @@ class DensityMap:
 
 
     def add_star(self, d=None, position=None, radius=None, intensity=None):
-        """TODO: Write this docstring."""
+        """Make a Star instance and store it in a list of stars for the disk.
+
+        d: (dictionairy) Must contain position, radius and intensity and can
+            be provided instead of giving these other arguments individually.
+        position: (float, array-like) Coordinates of the star.
+        radius: (float) Radius of the star.
+        intensity: (float) Intensity of the star.
+        """
         self.stars.append(Star(
             d=d, position=position, radius=radius, intensity=intensity
         ))
@@ -65,31 +72,35 @@ class DensityMap:
 
     def load(self,
         filename,
-        method="pickle",
+        method=None,
         separator=" ",
     ):
         """Load a dataset to analyse from a file.
-        TODO: Update this docstring.
 
         Assumed to be on the form 'x,y,density' or 'x,y,z,density' which
-        represents a point in cartesian space and the density at that point. If
-        the z-coordinate is not given it will be assumed to be 0 for every point.
+        represents a point in cartesian space and the density at that point.
+        If the z-coordinate is not given it will be assumed to be 0 for
+        every point. Resulting data is an array of shape (N, 4), where N is
+        the number of data points.
 
         filename: (string) Full pathname to file containing dataset.
-        radius_in: (float) Crop points that are closer than this to origo.
-        radius_out: (float) Crop points that are further than this to origo.
-        method: (string) What kind of loading algorithm to use.
+        method: (string) What kind of loading algorithm to use. Can be
+            'ascii' or 'pickle', If none is given, will try to automatically
+            find out by looking at file ending.
         separator: (string) If method='ascii' this is the separator
             between the values each line. Usually a space or comma. Ignored if
             method='pickle'.
-
-        return: (float, array) Array of shape (N, 4), where N is the number of
-            data points.
         """
 
         t_start = time.time()
             # Just to time the loading, in case of large dataset.
         infile = open(filename, "r")
+
+        if method is None:
+            if filename.endswith(".p") or filename.endswith(".pickle"):
+                method = "pickle"
+            else:
+                method = "ascii"
 
         if method == "pickle":
             data = pickle.load(infile)
@@ -123,8 +134,7 @@ class DensityMap:
 
 
     def writeto(self, filename, method="pickle", separator=" "):
-        """Write a dataset to a file for later use.
-        TODO: Update this docstring.
+        """Write self.data to a file for later use.
 
         Assumed to be on the form 'x,y,z,density' which represents a point in
         cartesian space and the density at that point.
@@ -132,7 +142,7 @@ class DensityMap:
         filename: (string) Full pathname to outfile for writing data.
         method: (string) What kind of writing algorithm to use. Recommended to
             use 'pickle' if it will be loaded by this program later (faster) and
-            'ascii' for an other purpose.
+            'ascii' for any other purpose.
         separator: (string) If method='ascii' this is the separator between the
             values each line. Usually a space or comma. Ignored if method='pickle'.
         """
@@ -179,13 +189,13 @@ class DensityMap:
 
     def rotate(self, angle_z=0, angle_y=0, angle_x=None, unit="deg"):
         """Rotate entire dataset by an angle around any axis.
-        TODO: Update this docstring.
 
-        data: (float, array) The dataset to be rotated. Array of shape (N, 4),
-            where N is the number of datapoints.
+        The original data is not changed. Rotated version of data stored in
+        self.data_rotated. self.stars are also rotated.
+
         angle_z: (float) Angle to rotate around z-axis. This is the rotational
             axis for the disk. It can be gradually increased to simulate the
-            orbital motion of the system..
+            orbital rotation of the system.
         angle_y: (float) Angle to rotate around y-axis. The inclination between
             the disk and the field of view. This angle should always be the same
             for one analysis if the disk is not wobbling.
@@ -194,10 +204,9 @@ class DensityMap:
             ignored.
         unit: (string) What unit angles are given in.
             'rad', 'deg', 'arcmin' or 'arcsec'.
-
-        return: (float, array) The input data with coordinates rotated.
         """
 
+        # Transform angles into radians:
         if unit == "rad":
             factor = 1.
         elif unit == "deg":
@@ -209,6 +218,7 @@ class DensityMap:
         angle_y *= factor
         angle_z *= factor
 
+        # Make rotation matrix:
         R_y = np.matrix([
             [ np.cos(angle_y),              0,  np.sin(angle_y)],
             [               0,              1,                0],
@@ -221,11 +231,13 @@ class DensityMap:
         ])
         rotation_matrix = R_y * R_z
 
+        # Rotate the disk:
         coords_in = self.data[:, :~0]
         coords_out = \
             np.asarray(rotation_matrix * coords_in.transpose()).transpose()
         self.data_rotated = np.hstack((coords_out, self.data[:, ~0, None]))
 
+        # Rotate the stars:
         for star in self.stars:
             star.position_rotated = np.asarray(
                 rotation_matrix * star.position[:, None]
@@ -233,12 +245,8 @@ class DensityMap:
 
 
     def distance(self, p1, p2=None):
-        """Returns the distances from a set of points to a line.
-        TODO: Update this docstring.
+        """Returns the distances from the (rotated) datapoints to a line.
 
-        points: (float, array) Coordinates represented by an array of shape
-            (N, d) where N is the number of points and d is the number of
-            dimensions (2 or 3).
         p1: (float, array) A point in space which defines a line with p2.
         p2: (float, array) A point in space which defines a line with p1. If
             p2 is not provided it is assumed that the line is parallell to
@@ -247,9 +255,11 @@ class DensityMap:
         return: (float, array) The shortest euclidian distances between
             points and the line (p1, p2).
         """
+
         if p2 is None:
             p2 = p1.copy()
             p2[0] += 1.
+
         return np.linalg.norm(
             np.cross(
                 p1 - self.data_rotated[:, :~0],
@@ -261,16 +271,18 @@ class DensityMap:
 
 
     def get_sylinder(self, starno=None, star=None):
-        """Slice out a sylinder shape from a set of datapoints.
-        TODO: Update this docstring.
+        """Slice out a sylinder shape from the data based on a star.
 
-        The sylinder is always centered on the x-axis and spans x=(0, inf].
+        The sylinder is always oriented along the x-axis. Its size and
+        position is determined by a star. It spans from the position of the
+        surface of the star until x=inf.
 
-        data: (float, array) The dataset to be sliced. Array of shape (N, 4),
-            where N is the number of datapoints.
-        radius_star: (float) Radius of the sylinder (a distance in the yz-plane).
+        starno: (int) Index to get star from self.stars. Ignored if star is
+            given.
+        star: (Star instance) A star to base the sylinder on.
 
-        return: (float, array) The slice of the dataset contained in the sylinder.
+        return: (float, array) The slice of the dataset contained in the
+        sylinder.
         """
 
         if star is None:
@@ -285,7 +297,9 @@ class DensityMap:
 
 
     def get_density_profile(self, sigma=1, skip=2000, show=True):
-        """TODO: Write this docstring."""
+        """Returns and displays the density profile of self.data.
+        TODO: Finish this docstring.
+        """
 
         from scipy.ndimage.filters import gaussian_filter1d
 
@@ -463,23 +477,29 @@ class Sylinder(DensityMap):
         n_steps=None,
         dr=None,
     ):
-        """Bin a (sylinder shaped) set of datapoints into a set of mean densities.
-        TODO: Update this docstring.
+        """Bin this sylinder's datapoints into a set of mean densities.
 
-        The sylinder is first sorted along the x-axis and is then cut along the
-        x-axis like a loaf of bread. The mean density is then computed from each
+        The sylinder is first sorted along the x-axis and is then cut along
+        the x-axis like a loaf of bread. Each point is integrated
+        analytically through its projected density from the bottom to the
+        top of the sylinder. The mean density is then computed from each
         slice of the sylinder/bread.
 
-        This method is the one using most time in this program.
+        This is stored temporarily as self.densities and self.drs: (float,
+        array), (float, array) A list of mean densities and the
+        corresponding list of delta radiuses for each bin. Both are arrays
+        of length n_step. The arrays are order FROM inside of disk TO
+        oustide of disk.
 
-        TODO: Decide on how to organize the other arguments.
-        data: (float, array) The dataset to be binned. Array of shape (N, 4),
-            where N is the number of datapoints.
+        inclination: (float) The angle to incline the line of sight on the
+            sylinder.
+        deg: (string) Unit of the angle.
+        H: (float) Thickness of the disk. Necessary for integral.
+        n_steps: (int) How many slices to divide the sylinder in. Affects
+            accuracy of integral.
+        dr: (float) The width of each sylinder section. Ignored if n_steps
+            is provided.
 
-        return: (float, array), (float, array) A list of mean densities and the
-            corresponding list of delta radiuses for each bin. Both are arrays of
-            length n_step. The arrays are order FROM inside of disk TO oustide
-            of disk.
         """
 
         if unit == "rad":
@@ -535,12 +555,8 @@ class Sylinder(DensityMap):
 
     def integrate(self):
         """Integrates the intensity through the layers of dust.
-        TODO: Update this docstring.
 
-        densities: (float, array) List of (mean) densities through a field of
-            view of the disk, ordered from inside to outside.
-        drs: (float, array) List of the corresponding dr to each density
-            measurement.
+        Assumes that space_sylinder has just been called and used its results.
 
         return: (float) Perceived intensity outside the disk
         """
