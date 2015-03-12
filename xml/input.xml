@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<!----------Explanation of input XML file-------------------------------------->
+<!--==========Explanation of input XML file==================================-->
 <!--This is a comment.-->
 <!--With this file you can set all the input parameters for analysing a
     circumbinary disk. Make a copy of this file and place it in the directory
@@ -15,7 +15,7 @@
 
 <input>
 
-    <!------------Input units-------------------------------------------------->
+    <!--==========Input units================================================-->
     <!--The units provided here are the units of the input values provided
     in this file, except for kappa. You can choose between the suggested
     units under each field (and other standard units). You can also use a
@@ -34,7 +34,7 @@
             <!--Examples:  rad  |  deg  |  arcmin  |  arcsec -->
     </unit>
 
-    <!------------Input data--------------------------------------------------->
+    <!--==========Input data=================================================-->
     <!--The pathname to the dataset to be analysed. The pathname must be
         relative to where you run the program from, or it can be an absolute
         path. It can be an ACII file with (x,y,density) columns or a pickle
@@ -45,7 +45,7 @@
     <system>cartesian</system>
         <!--Examples:  cartesian  |  polar -->
 
-    <!------------Disk boundaries---------------------------------------------->
+    <!--==========Disk boundaries============================================-->
     <!--Define the inner and out radius for where the disk exists. The
         dataset will be cropped to these limits, so it becomes a "donut".
         You can provide several inner and outer radiuses by separating them
@@ -60,7 +60,7 @@
     <radius_out>3</radius_out>
         <!--Examples:  3  |  5  |  4 6  |  3 5 7.5 10 -->
 
-    <!------------Inclinations------------------------------------------------->
+    <!--==========Inclinations===============================================-->
     <!--Which inclinations to analyse the system in. Several inclinations
         can be separated with spaces. If no inclinations is provided a
         default of 0 will be chosen.
@@ -68,7 +68,7 @@
     <inclination>0 10 30</inclination>
         <!--Examples:  10  |  0 2.5 5  |  0 5 10 20 30 -->
 
-    <!------------Other physical disk parameters------------------------------->
+    <!--==========Other physical disk parameters=============================-->
     <!--Total mass of disk, excluding the stars.
         Opacity, in units of [cm^2/g].
         Thickness of disk.
@@ -77,7 +77,7 @@
     <kappa>10.0</kappa> <!--[cm^2/g].-->
     <H0>0.1</H0>
 
-    <!------------Star parameters---------------------------------------------->
+    <!--==========Star parameters============================================-->
     <!--There can be one or more stars with different positions, radiuses
         and intensities. They will be integrated separately and have their
         resulting fluxes added together.
@@ -123,7 +123,7 @@
         </star>
     -->
 
-    <!------------Numerical parameters----------------------------------------->
+    <!--==========Numerical parameters=======================================-->
     <!--How many azimuthal rotation steps to use. This is the resolution of
         the resulting lightcurve.
         dtheta = 360deg / azimuthsteps
