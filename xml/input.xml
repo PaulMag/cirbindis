@@ -1,0 +1,139 @@
+<?xml version="1.0"?>
+
+<!--==========Explanation of input XML file==================================-->
+<!--This is a comment.-->
+<!--With this file you can set all the input parameters for analysing a
+    circumbinary disk. Make a copy of this file and place it in the directory
+    you run the program from. Then you can just run 'python
+    somepathname/main.py'. You can edit all the leaf nodes in this file,
+    that is any field between two tags. F.ex. you can replace '0 10 30' with
+    '5 15 25' in '<inclination>0 10 30</inclination>'. There are
+    descriptions of the meanings of all the elements, and some elements have
+    examples under them, where the different examples are separated with
+    vertical | bars | like | this.
+-->
+
+<input>
+
+    <!--==========Input units================================================-->
+    <!--The units provided here are the units of the input values provided
+    in this file, except for kappa. You can choose between the suggested
+    units under each field (and other standard units). You can also use a
+    quantity of a unit, f.ex. you can measure distance in units of '10.5
+    solRad' and mass in units of '1e27 kg'. Output units are always in
+    CGS-units and degrees.
+    -->
+    <unit>
+        <mass>solMass</mass>
+            <!--Examples:  solMass  |  kg  |  g -->
+        <distance>10.921 solRad</distance>
+            <!--Examples:  AU  |  solRad  |  km  |  m  |  cm -->
+        <intensity>erg s^-1 cm^-2</intensity>
+            <!--Examples:  erg s^-1 cm^-2   |   J / (m2 s) -->
+        <angle>deg</angle>
+            <!--Examples:  rad  |  deg  |  arcmin  |  arcsec -->
+    </unit>
+
+    <!--==========Input data=================================================-->
+    <!--The pathname to the dataset to be analysed. The pathname must be
+        relative to where you run the program from, or it can be an absolute
+        path. It can be an ACII file with (x,y,density) columns or a pickle
+        file. If it is ASCII you must also specify if the coordinates are
+        cartesian (x,y) or polar (r,theta).
+    -->
+    <datafile>data/data_cropped.p</datafile>
+    <system>cartesian</system>
+        <!--Examples:  cartesian  |  polar -->
+
+    <!--==========Disk boundaries============================================-->
+    <!--Define the inner and out radius for where the disk exists. The
+        dataset will be cropped to these limits, so it becomes a "donut".
+        You can provide several inner and outer radiuses by separating them
+        with spaces it you want to analyse different sized disks.
+        If radius_in is not provided it will default to just outside the
+        position of the stars. If radius_out is not provided it will default
+        to the radius that defines the largest circle that can fit within
+        the dataset.
+    -->
+    <radius_in>1</radius_in>
+        <!--Examples:  1  |  1.5  |  1 1.25 1.5 -->
+    <radius_out>3</radius_out>
+        <!--Examples:  3  |  5  |  4 6  |  3 5 7.5 10 -->
+
+    <!--==========Inclinations===============================================-->
+    <!--Which inclinations to analyse the system in. Several inclinations
+        can be separated with spaces. If no inclinations is provided a
+        default of 0 will be chosen.
+    -->
+    <inclination>0 10 30</inclination>
+        <!--Examples:  10  |  0 2.5 5  |  0 5 10 20 30 -->
+
+    <!--==========Other physical disk parameters=============================-->
+    <!--Total mass of disk, excluding the stars.
+        Opacity, in units of [cm^2/g].
+        Thickness of disk.
+    -->
+    <diskmass>0.01</diskmass>
+    <kappa>10.0</kappa> <!--[cm^2/g].-->
+    <H0>0.1</H0>
+
+    <!--==========Star parameters============================================-->
+    <!--There can be one or more stars with different positions, radiuses
+        and intensities. They will be integrated separately and have their
+        resulting fluxes added together.
+        * If you want to add another star:
+          Copy-paste a star element anc change its parameters.
+        * If you want to remove a star:
+          Delete a star element.
+        If no stars are provided a default star will be made at origo with
+        radius=radius_in and solar luminosity.
+        Provide EITHER cartesian (x,y) OR polar (r,theta) coordinates for
+        each star.
+    -->
+    <star>
+        <position>
+            <x>-0.5</x>
+            <y>0</y>
+            <r></r>
+            <theta></theta>
+        </position>
+        <radius>0.21</radius>
+        <intensity>1.1</intensity>
+    </star>
+    <star>
+        <position>
+            <x>0.5</x>
+            <y>0</y>
+            <r></r>
+            <theta></theta>
+        </position>
+        <radius>0.19</radius>
+        <intensity>0.9</intensity>
+    </star>
+    <!--Example:
+        <star>
+            <position>
+                <x></x>
+                <y></y>
+                <r>0.5</r>
+                <theta>5</theta>
+            </position>
+            <radius>0.2</radius>
+            <intensity>1.0</intensity>
+        </star>
+    -->
+
+    <!--==========Numerical parameters=======================================-->
+    <!--How many azimuthal rotation steps to use. This is the resolution of
+        the resulting lightcurve.
+        dtheta = 360deg / azimuthsteps
+    -->
+    <azimuthsteps>18</azimuthsteps>
+    <!--How many radial steps to use in each line-of-sight integration. This
+        defines dr and the accuracy of each fluxpoint in the resulting
+        lightcurve.
+        dr = (radius_out - radius_in) / radiussteps
+    -->
+    <radiussteps>10</radiussteps>
+
+</input>
