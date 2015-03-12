@@ -539,7 +539,8 @@ class Sylinder(DensityMap):
                 (data[start:end, 1] - self.star.position[1])**2
             ) / np.cos(inclination)
             z = (
-                data[start:end, 0] * np.tan(inclination)
+                (data[start:end, 0] - self.star.position[0]) *
+                np.tan(inclination)
             )
             z1 = z - W
             z2 = z + W
