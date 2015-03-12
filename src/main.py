@@ -30,7 +30,7 @@ if __name__ == "__main__":
         dataset.make_lightcurve(
             n_angle=int(input_["azimuthsteps"]),
             n_radius=int(input_["radiussteps"]),
-            unit=input_["unit"]["inclination"],
+            unit=input_["unit"]["angle"],
             show=True,
         )
         # dataset.set_r0()

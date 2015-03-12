@@ -364,6 +364,7 @@ class DensityMap:
                 for j, inclination in enumerate(inclinations):
                     sylinder.space_sylinder(
                         inclination=inclination,
+                        unit=unit,
                         n_steps=n_radius,
                         dr=dr,
                     )

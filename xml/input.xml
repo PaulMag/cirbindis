@@ -3,14 +3,13 @@
 
     <!--The units provided here are the units of the input values provided
         in this document, except for kappa. The output values are always in
-        CGS-units.
+        CGS-units and degrees.
     -->
     <unit>
         <mass>solar</mass>
         <distance>1.5e10 kg</distance>
         <intensity>jansky?</intensity>
-        <azimuth>deg</azimuth>
-        <inclination>deg</inclination>
+        <angle>deg</angle>
     </unit>
 
     <datafile>data/data_cropped.p</datafile>
