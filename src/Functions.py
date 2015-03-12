@@ -2,7 +2,7 @@ import numpy as np
 
 def to_list(x, dtype=None, separator=" "):
     if isinstance(x, basestring):
-        np.array(x.split(separator), dtype=dtype)
+        x = np.array(x.split(separator), dtype=dtype)
     else:
         try:
             iter(x)
