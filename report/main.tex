@@ -1,0 +1,91 @@
+\documentclass[a4paper, 12pt, english, titlepage]{article}
+
+% Import packages:
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx, color}
+\usepackage{parskip} % norwegian sections (skip line)
+\usepackage{amsmath}
+\usepackage{varioref} % fancy captions
+\usepackage[margin=3cm]{geometry} % smaller margins
+\usepackage{grffile} % Ex­tended file name sup­port for graph­ics, allows periods in filenames
+
+
+% Set code style:
+\definecolor{darkgreen}{RGB}{0,135,0}
+\usepackage{listings}
+\lstset{language=python}
+\lstset{basicstyle=\ttfamily\scriptsize} % \small if short code
+\lstset{frame=single} % creates the frame around code
+\lstset{title=\lstname} % display name of file, not necessary
+\lstset{keywordstyle=\color{red}\bfseries}
+\lstset{commentstyle=\color{blue}}
+\lstset{stringstyle =\color{darkgreen}}
+\lstset{showspaces=false}
+\lstset{showstringspaces=false}
+\lstset{showtabs=false}
+\lstset{breaklines=true}
+\lstset{tabsize=4}
+
+% Custom commands:
+%\newcommand{\nameOfCommand}[numberOfArguments]{command}
+\newcommand{\D}[1]{\ \mathrm{d}#1} % steps in integrals, ex: 4x \D{x} -> 4x dx
+\newcommand{\E}[1]{\cdot 10^{#1}}  % exponents, ex: 1.4\E{3} -> 1.4*10^3
+\newcommand{\U}[1]{\, \textrm{#1}} % display units prettily, ex: 15.4\U{m} -> 15.4 m
+\newcommand{\degree}{\, ^\circ}    % make a degree symbol
+\newcommand{\sname}{\texttt{CirBinDis}}
+
+\newcommand{\bilde}[3]{
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{#1}
+        \caption{#3 \label{#2}}
+    \end{figure}
+}
+\newcommand{\bildeto}[4]{
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.96\textwidth]{#1}
+        \includegraphics[width=0.96\textwidth]{#2}
+        \caption{#4 \label{#3}}
+    \end{figure}
+}
+
+% Opening:
+\title{Circumbinary disk analyser - \sname(?)}
+\author{Paul Magnus Sørensen-Clark \\ Jerome Bouvier}
+
+% Begin document:
+\begin{document}
+\maketitle
+
+
+\section{Introduction}
+
+A small piece of software for receiving an artificial light curve from a simulated density map of a gas disk around a binary star.
+
+\section{Installing}
+
+Pull the source code from https://bitbucket.org/paulmag/circumbinarydisk. Link will be updated.
+
+\section{Preparing your data}
+
+The required format of the input data.
+
+\section{Processing algorithm}
+
+Description of the methods and formulas we use.
+
+\section{Running \sname}
+
+How to make necessary configurations and then run \sname to perform an analysis. It is recommended to make the alias \texttt{cirbindis} for the command \texttt{python ~/path\_to\_repository\_folder/circumbinarydisk/src/main.py}.
+
+\section{Bibliography}
+
+
+
+\section{Acknowledgments}
+
+
+
+\end{document}
