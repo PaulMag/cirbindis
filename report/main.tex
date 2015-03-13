@@ -105,6 +105,10 @@ Any units can be used for the input data. How to specify units are covered in th
 
 \sname produces artificial lightcurves by analysing the provided dataset according to given configurations. In this section the process for extracting the lightcurve from the dataset is explained.
 
+\subsection{Loading data}
+    %TODO
+    \textbf{TODO}
+
 \subsection{Cropping}
     The space covered by the dataset may represent a larger area than the disk you want to analyse. The dataset is cropped to an inner and outer radius such that the shape of the remaining datapoints resembles a donut. The outer radius represents the size of the disk and makes sure that the disk is circular. The inner radius is necessary to avoid treating the stars themselves as dust, and the density of the dust is very low close to the stars anyway.
 
@@ -127,6 +131,14 @@ Any units can be used for the input data. How to specify units are covered in th
 \subsection{Sylinder}
     A section of the datapoints are cropped out, which represents only the sylinder of gas that is between an observer on Earth and the star. These are the datapoints that fall within the sylinder whose base area is defined by the stellar surface and which extends from the stellar surface and infinitely along the $x$-axis in positive direction (the de facto limit is the outer radius of the disk). In other words, the observer's position is assumed to be $(\infty, 0, 0)$. A sylinder like this is made once for \emph{each} azimuthal rotation of all the points. Thus, each sylinder will be a little different from the previous one (if $\D\theta$ is small). If there are two (or even more) stars a sylinder will be created for the line of sight of each star, so there can be two (or even more) sylinders at the same time.
 
+\subsection{Binning}
+    %TODO
+    \textbf{TODO}
+
+\subsection{Integrating}
+    %TODO
+    \textbf{TODO}
+
 
 %===============================================================================
 \section{Configuring and running \sname}
@@ -134,9 +146,7 @@ Any units can be used for the input data. How to specify units are covered in th
 
 How to make necessary configurations and then run \sname to perform an analysis.
 
-
-
-
+This is the most practical and maybe the most important section, as it explains how to actually use the software.
 
 \subsection{Input parameters}
     The input parameters for each run of \sname is configured in an XML file. Inside the repository you will find \texttt{/xml/input.xml}. Copy this file to the path where you will run \sname from and change the value of the fields as required (it must still be called \texttt{input.xml}). Specifically, this is where you provide the filename of the dataset to analyse.
@@ -150,6 +160,9 @@ How to make necessary configurations and then run \sname to perform an analysis.
         \item[unit-intensity] dolum
     \end{description}
 
+\subsection{Executing the code}
+    %TODO
+    \textbf{TODO}
 
 %===============================================================================
 \section{Bibliography}
