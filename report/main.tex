@@ -8,7 +8,8 @@
 \usepackage{amsmath}
 \usepackage{varioref} % fancy captions
 \usepackage[margin=3cm]{geometry} % smaller margins
-\usepackage{grffile} % Ex­tended file name sup­port for graph­ics, allows periods in filenames
+\usepackage{grffile} % ex­tended file name sup­port for graph­ics, allows periods in filenames
+\usepackage{hyperref} % allows hyperlinks with the \href command
 
 
 % Set code style:
@@ -33,7 +34,7 @@
 \newcommand{\E}[1]{\cdot 10^{#1}}  % exponents, ex: 1.4\E{3} -> 1.4*10^3
 \newcommand{\U}[1]{\, \textrm{#1}} % display units prettily, ex: 15.4\U{m} -> 15.4 m
 \newcommand{\degree}{\, ^\circ}    % make a degree symbol
-\newcommand{\sname}{\texttt{CirBinDis}}
+\newcommand{\sname}{\texttt{CirBinDis }}
 
 \newcommand{\bilde}[3]{
     \begin{figure}[htbp]
@@ -60,31 +61,82 @@
 \maketitle
 
 
+%===============================================================================
 \section{Introduction}
+%-------------------------------------------------------------------------------
 
 A small piece of software for receiving an artificial light curve from a simulated density map of a gas disk around a binary star.
 
+
+%===============================================================================
 \section{Installing}
+%-------------------------------------------------------------------------------
 
-Pull the source code from https://bitbucket.org/paulmag/circumbinarydisk. Link will be updated.
+The source code is available at this Bitbucket repository: \\
+\url{https://bitbucket.org/paulmag/circumbinarydisk} \\
+Provided that Git is installed on you computer you can easily get all the files by running the following command inside the folder where you want the repository: \\
+\texttt{git clone https://paulmag@bitbucket.org/paulmag/circumbinarydisk.git} \\
+This link will be updated if the location of the repository or the installation process in any other way changes (note that at this moment the repository is private).
+Should it not work then contact the authors via email.
 
+We recommended to make the alias \texttt{cirbindis} for the command \\
+\texttt{python \textasciitilde/path\_to\_repository\_folder/circumbinarydisk/src/main.py}. \\
+F. ex. place this in your \texttt{.bashrc} or \texttt{.bash\_aliases}:
+\begin{verbatim}
+    alias cirbindis="python ~/GitHub/circumbinarydisk/src/main.py"
+\end{verbatim}
+This alias will be assumed for the rest of this manual.
+
+
+%===============================================================================
 \section{Preparing your data}
+%-------------------------------------------------------------------------------
 
-The required format of the input data.
+The format of the input data must be an ASCII/CSV-file with three columns where each line represents a datapoint in space. The two first columns of each line represent the position of a datapoint. $(x, y)$ if using cartesian coordinates and $(r, \theta)$ if using polar coordinates. The last column represents the density in this position.
 
+Any units can be used for the input data. How to specify units are covered in the section \textbf{Configuring and running \sname}.
+
+(It is currently possible to have four instead of three. Then the three first columns represent $(x, y, z)$ or $(r, \theta, z)$. The use of 3D-datapoints is currently an obsolete feature that will probably be completely removed.)
+
+
+%===============================================================================
 \section{Processing algorithm}
+%-------------------------------------------------------------------------------
 
 Description of the methods and formulas we use.
 
-\section{Running \sname}
 
-How to make necessary configurations and then run \sname to perform an analysis. It is recommended to make the alias \texttt{cirbindis} for the command \texttt{python ~/path\_to\_repository\_folder/circumbinarydisk/src/main.py}.
+%===============================================================================
+\section{Configuring and running \sname}
+%-------------------------------------------------------------------------------
 
+How to make necessary configurations and then run \sname to perform an analysis.
+
+
+
+
+
+\subsection{Input parameters}
+    The input parameters for each run of \sname is configured in an XML file. Inside the repository you will find \texttt{/xml/input.xml}. Copy this file to the path where you will run \sname from and change the value of the fields as required (it must still be called \texttt{input.xml}). Specifically, this is where you provide the filename of the dataset to analyse.
+
+    %TODO
+    \textbf{TODO}: Here I plan to more or less copy the explanations that are in \texttt{input.xml} already.
+
+    \begin{description}
+        \item[unit-mass] Dorem
+        \item[unit-distance] ipsum
+        \item[unit-intensity] dolum
+    \end{description}
+
+
+%===============================================================================
 \section{Bibliography}
+%-------------------------------------------------------------------------------
 
 
-
+%===============================================================================
 \section{Acknowledgments}
+%-------------------------------------------------------------------------------
 
 
 
