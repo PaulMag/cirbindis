@@ -11,6 +11,8 @@ import time
     # Used to time parts of code to look for bottlenecks.
 import matplotlib.pyplot as plt
     # For plotting results.
+from scipy import integrate
+from scipy import special
 
 from Star import Star
 import Functions as func
@@ -522,6 +524,8 @@ class Sylinder(DensityMap):
 
         data = self.data[np.argsort(self.data[:, 0])]
 
+        g = np.sqrt(2) * H  # Constant used several times in calculations.
+
         for i in xrange(n_steps):
             start = i*dpoints
             if i == n_steps-1:
@@ -545,10 +549,12 @@ class Sylinder(DensityMap):
             z1 = z - W
             z2 = z + W
             densities[i] = (
-                data[start:end, 3] *
-                H *
-                (np.exp(- z1 / H) - np.exp(- z2 / H))
-            ).sum() / (2 * np.sum(W))
+                np.sum(
+                    # \int_z1^z2 \rho_0 * e^{- z^2 / (2*H^2)} dz
+                    g * data[start:end, 3] * 0.5 * np.sqrt(np.pi) *
+                    special.erf(z2 / g) - special.erf(z1 / g)
+                ) / (2. * np.sum(W))
+            )
 
         self.densities = densities
         self.drs = drs
