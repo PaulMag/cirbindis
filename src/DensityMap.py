@@ -25,6 +25,7 @@ class DensityMap:
     def __init__(self,
         data=None,
         filename=None,
+        coordsystem="cartesian",
         inclinations=None,
         radius_in=0,
         radius_out=np.inf,
@@ -56,6 +57,13 @@ class DensityMap:
 
         elif filename is not None:
             self.load(filename)
+
+        if coordsystem == "cartesian":
+            pass
+        elif coordsystem == "polar":
+            x, y = func.pol2cart(self.data[:, 0, self.data[:, 1])
+        else:
+            raise KeyError("Coordinate system must be 'cartesian' or 'polar'.")
 
 
     def add_star(self, d=None, position=None, radius=None, intensity=None):
