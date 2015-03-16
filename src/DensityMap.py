@@ -29,6 +29,7 @@ class DensityMap:
         inclinations=None,
         radius_in=0,
         radius_out=np.inf,
+        H=1.,
         kappa=10.
     ):
 
@@ -42,6 +43,7 @@ class DensityMap:
         self.stars = []
         self.radius_in = radius_in
         self.radius_out = radius_out
+        self.H = H
         self.kappa = kappa  # [cm^2 / g]
             # Between 5 and 100 according to Boubier et al. 1999.
 
@@ -61,7 +63,7 @@ class DensityMap:
         if coordsystem == "cartesian":
             pass
         elif coordsystem == "polar":
-            x, y = func.pol2cart(self.data[:, 0, self.data[:, 1])
+            x, y = func.pol2cart(self.data[:, 0], self.data[:, 1])
         else:
             raise KeyError("Coordinate system must be 'cartesian' or 'polar'.")
 
@@ -333,7 +335,7 @@ class DensityMap:
 
     def make_lightcurve(self,
         inclinations=None,
-        H=1.,
+        H=None,
         n_angle=None,
         dtheta=None,
         theta=None,
@@ -365,6 +367,9 @@ class DensityMap:
         # If the inclination is a single number, put it in a list:
         inclinations = func.to_list(inclinations)
 
+        if H is None:
+            H = self.H
+
         if n_angle is None:
             n_angle = int(round(float(theta) / dtheta))
         elif dtheta is None:
@@ -391,6 +396,7 @@ class DensityMap:
                     sylinder.space_sylinder(
                         inclination=inclination,
                         unit=unit,
+                        H=H,
                         n_steps=n_radius,
                         dr=dr,
                     )

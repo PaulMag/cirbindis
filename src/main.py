@@ -18,6 +18,7 @@ if __name__ == "__main__":
                 inclinations=func.to_list(input_["inclination"], float),
                 radius_in=radius_in,
                 radius_out=radius_out,
+                H=float(input_["H0"]),
                 kappa=float(input_["kappa"]),
             )
             for star in func.to_list(input_["star"]):
