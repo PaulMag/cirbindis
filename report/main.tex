@@ -15,10 +15,10 @@
 % Set code style:
 \definecolor{darkgreen}{RGB}{0,135,0}
 \usepackage{listings}
-\lstset{language=python}
+% \lstset{language=python}
 \lstset{basicstyle=\ttfamily\scriptsize} % \small if short code
 \lstset{frame=single} % creates the frame around code
-\lstset{title=\lstname} % display name of file, not necessary
+% \lstset{title=\lstname} % display name of file, not necessary
 \lstset{keywordstyle=\color{red}\bfseries}
 \lstset{commentstyle=\color{blue}}
 \lstset{stringstyle =\color{darkgreen}}
@@ -53,12 +53,27 @@
 }
 
 % Opening:
-\title{Circumbinary disk analyser - \sname(?)}
+\title{\sname \\ Circumbinary disk analyser}
 \author{Paul Magnus Sørensen-Clark \\ Jerome Bouvier}
 
 % Begin document:
 \begin{document}
+
 \maketitle
+\tableofcontents
+
+\vfill
+Contact:
+
+Paul Magnus Sørensen-Clark:
+\href{mailto:paulmag91@gmail.com}{paulmag91@gmail.com}
+
+Jerome Bouvier:
+\href{mailto:jerome.bouvier@obs.ujf-grenoble.fr}{jerome.bouvier@obs.ujf-grenoble.fr}
+
+\url{https://bitbucket.org/paulmag/circumbinarydisk}
+
+\clearpage
 
 
 %===============================================================================
@@ -173,6 +188,31 @@ This is the most practical and maybe the most important section, as it explains 
 \section{Acknowledgments}
 %-------------------------------------------------------------------------------
 
+
+%===============================================================================
+\section{Source code}
+%-------------------------------------------------------------------------------
+
+\subsection{\texttt{input.xml}}
+    \lstinputlisting[language=XML]{../xml/input.xml}
+
+\subsection{\texttt{main.py}}
+    \lstinputlisting[language=Python]{../src/main.py}
+
+\subsection{\texttt{DensityMap.py}}
+    \lstinputlisting[language=Python]{../src/DensityMap.py}
+
+\subsection{\texttt{Star.py}}
+    \lstinputlisting[language=Python]{../src/Star.py}
+
+\subsection{\texttt{Functions.py}}
+    \lstinputlisting[language=Python]{../src/Functions.py}
+
+\subsection{\texttt{plot.py}}
+    \lstinputlisting[language=Python]{../src/plot.py}
+
+\subsection{\texttt{make\_testdata.py}}
+    \lstinputlisting[language=Python]{../src/make_testdata.py}
 
 
 \end{document}
