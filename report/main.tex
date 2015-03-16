@@ -82,6 +82,8 @@ Jerome Bouvier:
 
 A small piece of software for receiving an artificial light curve from a simulated density map of a gas disk around a binary star.
 
+This explains certain procedures with bash-commands, which exists in Linux/UNIX and Apple OS. \sname should work in Windows as well, but some bash-commads may be different.
+
 
 %===============================================================================
 \section{Installing}
@@ -164,7 +166,7 @@ How to make necessary configurations and then run \sname to perform an analysis.
 This is the most practical and maybe the most important section, as it explains how to actually use the software.
 
 \subsection{Input parameters}
-    The input parameters for each run of \sname is configured in an XML file. Inside the repository you will find \texttt{/xml/input.xml}. Copy this file to the path where you will run \sname from and change the value of the fields as required (it must still be called \texttt{input.xml}). Specifically, this is where you provide the filename of the dataset to analyse.
+    The input parameters for each run of \sname is configured in an XML file. Inside the repository you will find \texttt{/xml/input.xml}. Copy this file to the path where you will run \sname from (normally the folder where the input datafile is) and change the value of the fields as required (it must still be called \texttt{input.xml}). Specifically, this is where you provide the filename of the dataset to analyse (if \texttt{input.xml} is in another folder than the input datafile you need to provide the relative path).
 
     %TODO
     \textbf{TODO}: Here I plan to more or less copy the explanations that are in \texttt{input.xml} already.
@@ -176,6 +178,11 @@ This is the most practical and maybe the most important section, as it explains 
     \end{description}
 
 \subsection{Executing the code}
+    When you have prepared \texttt{input.xml} and you are located in it's folder, type the command \texttt{cirbindis} \\
+    (or \texttt{python \textasciitilde/path\_to\_repository\_folder/circumbinarydisk/src/main.py}).
+    Then the software will run until it has completed the analysis of your datafile with all the parameters you specified.
+
+\subsection{Output}
     %TODO
     \textbf{TODO}
 
