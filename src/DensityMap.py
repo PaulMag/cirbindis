@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
     # For plotting results.
 from scipy import integrate
 from scipy import special
+from astropy import units
 
 from Star import Star
 import Functions as func
@@ -26,9 +27,11 @@ class DensityMap:
         data=None,
         filename=None,
         coordsystem="cartesian",
+        unit=None,
         inclinations=None,
         radius_in=0,
         radius_out=np.inf,
+        diskmass=0.01,
         H=1.,
         kappa=10.
     ):
@@ -41,8 +44,10 @@ class DensityMap:
         except TypeError:
             self.inclinations = [inclinations]
         self.stars = []
+        self.unit = unit
         self.radius_in = radius_in
         self.radius_out = radius_out
+        self.diskmass = diskmass
         self.H = H
         self.kappa = kappa  # [cm^2 / g]
             # Between 5 and 100 according to Boubier et al. 1999.
@@ -67,8 +72,27 @@ class DensityMap:
         else:
             raise KeyError("Coordinate system must be 'cartesian' or 'polar'.")
 
+        if unit is not None:
+            self.radius_in *= units.Unit(unit["distance"]).to("cm")
+            self.radius_out *= units.Unit(unit["distance"]).to("cm")
+            self.diskmass *= units.Unit(unit["mass"]).to("gram")
+            self.H *= units.Unit(unit["distance"]).to("cm")
+            self.data[:, 0:3] *= units.Unit(unit["distance"]).to("cm")
+            self.data[:, 3] *= (
+                units.Unit(unit["mass"]) /
+                units.Unit(unit["distance"])**3
+            ).to("g/cm^3")
+                #TODO If z-component is removed then replace 3 with 2 here.
+            pass
 
-    def add_star(self, d=None, position=None, radius=None, intensity=None):
+
+    def add_star(self,
+        d=None,
+        position=None,
+        radius=None,
+        intensity=None,
+        unit=None,
+    ):
         """Make a Star instance and store it in a list of stars for the disk.
 
         d: (dictionairy) Must contain position, radius and intensity and can
@@ -78,7 +102,11 @@ class DensityMap:
         intensity: (float) Intensity of the star.
         """
         self.stars.append(Star(
-            d=d, position=position, radius=radius, intensity=intensity
+            d=d,
+            position=position,
+            radius=radius,
+            intensity=intensity,
+            unit=unit,
         ))
 
 
@@ -585,7 +613,9 @@ class Sylinder(DensityMap):
         intensity = self.star.intensity
 
         for density, dr in zip(self.densities, self.drs):
+            print intensity, self.kappa, density, dr
             tau = self.kappa * density * dr
+            print tau
             intensity *= np.exp(-tau)
 
         return intensity

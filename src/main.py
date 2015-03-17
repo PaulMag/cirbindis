@@ -15,14 +15,16 @@ if __name__ == "__main__":
             dataset = DensityMap(
                 filename=input_["datafile"],
                 coordsystem=input_["system"],
+                unit=input_["unit"],
                 inclinations=func.to_list(input_["inclination"], float),
                 radius_in=radius_in,
                 radius_out=radius_out,
+                diskmass=float(input_["diskmass"]),
                 H=float(input_["H0"]),
                 kappa=float(input_["kappa"]),
             )
             for star in func.to_list(input_["star"]):
-                dataset.add_star(star)
+                dataset.add_star(star, unit=input_["unit"])
             dataset.make_lightcurve(
                 n_angle=int(input_["azimuthsteps"]),
                 n_radius=int(input_["radiussteps"]),
