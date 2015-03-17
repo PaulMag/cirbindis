@@ -53,22 +53,15 @@ class DensityMap:
             # Between 5 and 100 according to Boubier et al. 1999.
 
         if data is not None:
-            if data.shape[1] == 4:
-                self.data = data
-            elif data.shape[1] == 3:
-                self.data = np.vstack((
-                    data[:, 0:2],
-                    np.zeros(data.shape[0]),
-                    data[:, 2, None],
-                ))
+            self.data = data
 
         elif filename is not None:
             self.load(filename)
 
         # Convert density to physical units related to the total mass and
         # size of the disk:
-        self.data[:, 3] /= self.data[:, 3].mean()
-        self.data[:, 3] *= (
+        self.data[:, ~0] /= self.data[:, ~0].mean()
+        self.data[:, ~0] *= (
             self.diskmass / (np.pi * self.radius_out**2 * 2*self.H)
         )
 
@@ -132,29 +125,24 @@ class DensityMap:
                 (np.linalg.norm(data[:, 0:2], axis=1) >= self.radius_in) *
                 (np.linalg.norm(data[:, 0:2], axis=1) <= self.radius_out)
             )
-            data = data[np.where(mask)]
+            self.data = data[np.where(mask)]
 
         elif method == "ascii":
             data = []
             for line in infile:
-                line = [float(value) for value in line.split(separator)]
+                line = line.rstrip().split(separator)
                 if len(line) >= 3:
+                    line = [float(value) for value in line]
                     if (self.radius_in <=
                         np.linalg.norm(line[0:2]) <=
                         self.radius_out
                     ):
-                        data.append()
-            data = np.array(data)
+                        data.append(line)
+            self.data = np.array(data)
 
         infile.close()
         t_end = time.time()  # End of timer.
         print "Loading took %f seconds." % (t_end - t_start)
-
-        if data.shape[1] < 4:
-            # Add the z-dimension if it is not already there.
-            z = np.zeros((data.shape[0], 1))
-            data = np.hstack((data[:, 0:2], z, data[:, 2, None]))
-        self.data = data
 
 
     def writeto(self, filename, method="pickle", separator=" "):
@@ -181,11 +169,10 @@ class DensityMap:
         elif method == "ascii":
             outfile = open(filename, "w")
             for line in self.data:
-                outfile.write("%f%s%f%s%f%s%f\n" % (
+                outfile.write("%f%s%f%s%f\n" % (
                     line[0], separator,
                     line[1], separator,
-                    line[2], separator,
-                    line[3],
+                    line[2],
                 ))
 
         outfile.close()
@@ -211,7 +198,7 @@ class DensityMap:
         return self.sigma0 * (r / self.r0)**self.sigma_power  # [g / cm^2]
 
 
-    def rotate(self, angle_z=0, angle_y=0, angle_x=None, unit="deg"):
+    def rotate(self, angle_z=0, unit="deg"):
         """Rotate entire dataset by an angle around any axis.
 
         The original data is not changed. Rotated version of data stored in
@@ -239,21 +226,13 @@ class DensityMap:
             factor = np.pi / 180. * 60
         elif unit == "arcsec":
             factor = np.pi / 180. * 3600
-        angle_y *= factor
         angle_z *= factor
 
         # Make rotation matrix:
-        R_y = np.matrix([
-            [ np.cos(angle_y),              0,  np.sin(angle_y)],
-            [               0,              1,                0],
-            [-np.sin(angle_y),              0,  np.cos(angle_y)],
+        rotation_matrix = np.matrix([
+            [ np.cos(angle_z), -np.sin(angle_z)],
+            [ np.sin(angle_z),  np.cos(angle_z)],
         ])
-        R_z = np.matrix([
-            [ np.cos(angle_z), -np.sin(angle_z),              0],
-            [ np.sin(angle_z),  np.cos(angle_z),              0],
-            [               0,                0,              1],
-        ])
-        rotation_matrix = R_y * R_z
 
         # Rotate the disk:
         coords_in = self.data[:, :~0]
@@ -284,13 +263,12 @@ class DensityMap:
             p2 = p1.copy()
             p2[0] += 1.
 
-        return np.linalg.norm(
+        return np.abs(
             np.cross(
                 p1 - self.data_rotated[:, :~0],
                 p2 - self.data_rotated[:, :~0],
             ) /
             np.linalg.norm(p2 - p1),
-            axis=1,
         )
 
 
@@ -490,15 +468,7 @@ class Sylinder(DensityMap):
         self.radius_out = radius_out
         self.kappa = kappa  # [cm^2 / g]
 
-
-        if data.shape[1] == 4:
-            self.data = data
-        elif data.shape[1] == 3:
-            self.data = np.vstack((
-                data[:, 0:2],
-                np.zeros(data.shape[0]),
-                data[:, 2, None],
-            ))
+        self.data = data
 
 
     def space_sylinder(self,
@@ -580,7 +550,7 @@ class Sylinder(DensityMap):
             densities[i] = (
                 np.sum(
                     # \int_z1^z2 \rho_0 * e^{- z^2 / (2*H^2)} dz
-                    g * data[start:end, 3] * 0.5 * np.sqrt(np.pi) *
+                    g * data[start:end, ~0] * 0.5 * np.sqrt(np.pi) *
                     (special.erf(z2 / g) - special.erf(z1 / g))
                 ) / (2. * np.sum(W))
             )
