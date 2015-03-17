@@ -588,10 +588,13 @@ class Sylinder(DensityMap):
         return: (float) Perceived intensity outside the disk
         """
 
+        kappa = self.kappa * u.Unit("cm2/gram").to(
+            u.Unit(self.unit["distance"])**2 / u.Unit(self.unit["mass"])
+        )
         intensity = self.star.intensity
 
         for density, dr in zip(self.densities, self.drs):
-            tau = self.kappa * density * dr
+            tau = kappa * density * dr
             intensity *= np.exp(-tau)
 
-        return intensity
+        return intensity * (u.Unit(self.unit["intensity"])).to("erg / (cm2 s)")
