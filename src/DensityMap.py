@@ -31,6 +31,7 @@ class DensityMap:
         inclinations=None,
         radius_in=0,
         radius_out=np.inf,
+        diskmass=.01,
         H=1.,
         kappa=10.
     ):
@@ -46,6 +47,7 @@ class DensityMap:
         self.stars = []
         self.radius_in = radius_in
         self.radius_out = radius_out
+        self.diskmass = diskmass
         self.H = H
         self.kappa = kappa  # [cm^2 / g]
             # Between 5 and 100 according to Boubier et al. 1999.
@@ -62,6 +64,12 @@ class DensityMap:
 
         elif filename is not None:
             self.load(filename)
+
+        self.data[:, 3] *= (
+            self.diskmass*1 *
+            0.35 * 1**0.5 /
+            (2*np.pi * (self.radius_out*1)**3.5)
+        )
 
         if coordsystem == "cartesian":
             pass
