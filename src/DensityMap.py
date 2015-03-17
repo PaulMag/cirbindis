@@ -65,10 +65,11 @@ class DensityMap:
         elif filename is not None:
             self.load(filename)
 
+        # Convert density to physical units related to the total mass and
+        # size of the disk:
+        self.data[:, 3] /= self.data[:, 3].mean()
         self.data[:, 3] *= (
-            self.diskmass*1 *
-            0.35 * 1**0.5 /
-            (2*np.pi * (self.radius_out*1)**3.5)
+            self.diskmass / (np.pi * self.radius_out**2 * 2*self.H)
         )
 
         if coordsystem == "cartesian":
