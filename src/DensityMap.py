@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
     # For plotting results.
 from scipy import integrate
 from scipy import special
+import astropy.units as u
 
 from Star import Star
 import Functions as func
@@ -26,6 +27,7 @@ class DensityMap:
         data=None,
         filename=None,
         coordsystem="cartesian",
+        unit=None,
         inclinations=None,
         radius_in=0,
         radius_out=np.inf,
@@ -40,6 +42,7 @@ class DensityMap:
             self.inclinations = inclinations
         except TypeError:
             self.inclinations = [inclinations]
+        self.unit = unit
         self.stars = []
         self.radius_in = radius_in
         self.radius_out = radius_out
@@ -388,6 +391,7 @@ class DensityMap:
                 sylinder = Sylinder(
                     star=star,
                     data=self.get_sylinder(star=star),
+                    unit=self.unit,
                     radius_in=self.radius_in,
                     radius_out=self.radius_out,
                     kappa=self.kappa
@@ -458,6 +462,7 @@ class Sylinder(DensityMap):
     def __init__(self,
         star,
         data,
+        unit=None,
         inclinations=None,
         radius_in=0,
         radius_out=np.inf,
@@ -471,6 +476,7 @@ class Sylinder(DensityMap):
         except TypeError:
             self.inclinations = [inclinations]
         self.star = star
+        self.unit = unit
         self.radius_in = radius_in
         self.radius_out = radius_out
         self.kappa = kappa  # [cm^2 / g]
