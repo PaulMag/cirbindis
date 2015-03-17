@@ -580,7 +580,7 @@ class Sylinder(DensityMap):
                 np.sum(
                     # \int_z1^z2 \rho_0 * e^{- z^2 / (2*H^2)} dz
                     g * data[start:end, 3] * 0.5 * np.sqrt(np.pi) *
-                    special.erf(z2 / g) - special.erf(z1 / g)
+                    (special.erf(z2 / g) - special.erf(z1 / g))
                 ) / (2. * np.sum(W))
             )
 
