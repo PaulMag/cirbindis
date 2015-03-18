@@ -75,6 +75,7 @@ class DensityMap:
             pass
         elif coordsystem == "polar":
             x, y = func.pol2cart(self.data[:, 0], self.data[:, 1])
+            self.data[:, 0], self.data[:, 1] = x, y
         else:
             raise KeyError("Coordinate system must be 'cartesian' or 'polar'.")
 
