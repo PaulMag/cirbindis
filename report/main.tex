@@ -11,7 +11,6 @@
 \usepackage{grffile} % ex­tended file name sup­port for graph­ics, allows periods in filenames
 \usepackage{hyperref} % allows hyperlinks with the \href command
 
-
 % Set code style:
 \definecolor{darkgreen}{RGB}{0,135,0}
 \usepackage{listings}
@@ -30,6 +29,7 @@
 
 % Custom commands:
 %\newcommand{\nameOfCommand}[numberOfArguments]{command}
+\newcommand{\erf}[1]{\textrm{erf}\left(#1\right)} % steps in integrals, ex: 4x \D{x} -> 4x dx
 \newcommand{\D}[1]{\ \mathrm{d}#1} % steps in integrals, ex: 4x \D{x} -> 4x dx
 \newcommand{\E}[1]{\cdot 10^{#1}}  % exponents, ex: 1.4\E{3} -> 1.4*10^3
 \newcommand{\U}[1]{\, \textrm{#1}} % display units prettily, ex: 15.4\U{m} -> 15.4 m
@@ -149,8 +149,50 @@ Any units can be used for the input data. How to specify units are covered in th
     A section of the datapoints are cropped out, which represents only the sylinder of gas that is between an observer on Earth and the star. These are the datapoints that fall within the sylinder whose base area is defined by the stellar surface and which extends from the stellar surface and infinitely along the $x$-axis in positive direction (the de facto limit is the outer radius of the disk). In other words, the observer's position is assumed to be $(\infty, 0, 0)$. A sylinder like this is made once for \emph{each} azimuthal rotation of all the points. Thus, each sylinder will be a little different from the previous one (if $\D\theta$ is small). If there are two (or even more) stars a sylinder will be created for the line of sight of each star, so there can be two (or even more) sylinders at the same time.
 
 \subsection{Binning}
-    %TODO
-    \textbf{TODO}
+
+    \subsubsection{Algorithm}
+        Each sylinder is sliced up into $n_{steps}$ bins along the line of sight, where $n_{steps}$ is given by the field \texttt{radiussteps} in \texttt{input.xml}. $N_{sylinder}$ is the number of datapoints contained within a sylinder. For each bin the mean density is computed. The binning algorithm works like this:
+        \begin{enumerate}
+            \item Sort all datapoints in sylinder according to $x$-component.
+            \item Find $N_{bin} = N_{sylinder} / n_{steps}$.
+            \item First $N_{bin}$ (sorted) datapoints goes in the first bin, next $N_{bin}$ datapoints go in the second bin, etc.
+            \item Create corresponding $\D r$ array, where the $\D r$ corresponding the each bin is the difference between the $x$-component of the first and last datapoint in that bin.
+        \end{enumerate}
+
+    \subsubsection{Reasoning}
+        An alternative way this could be done is have a static $\Delta r$ and check which points fall within $[r, r + \D r]$ for $r$ in $[0, 1, 2, 3 \hdots]\cdot\Delta r$, but this requires a boolean test on the entire sylinder for each radius. It is much faster to sort the datapoints in the sylinder once and then just slice it with indices. There could be even smarter ways to do it, but this has worked well for now. A side effect of this method is that $\Delta r$ is smaller in areas where there are more datapoints. If the grid of datapoints is spaced denser in central areas where the most interesting features are this is a bonus compared to a static $\Delta r$.
+
+
+\subsection{Mean density of bins, weighted and integrated}
+    For each bin a mean density is produced from all the datapoints in that bin. Each point is also projected vertically up from the disk (orthogonal to the disk plane) and into the area it represents in a sylinder that is inclined with respect to the disk.
+
+    $\rho(z)$ is the assumed density at a point with altitude $z$ above a point in the disk plane with density $\rho_0$.
+    $$
+    \rho(z) = \rho_0 \exp\left(- \frac{z^2}{2H^2}\right)
+    $$
+    Each density point is given a weight according to where it is in the sylinder. Points closer to the middle of the sylinder gains larger weight because they represent its fulll height and thus a larger area than points near the edges.
+    (\textbf{TODO:} There needs to be a figure of this to illustrate it more cleary.)
+    $$
+    W_i(y) = \frac{\sqrt{r_{star}^2 - (y_i - y_{star})^2}}{\cos(\phi)}
+    $$
+    The factor $1/\cos(\phi)$ adjusts the height of the sylinder if it is inclined so that it is always shaped like a circular sylinder.
+
+    To get the density inside the entire area of the slice of the sylinder and the variations in density from different altitudes we integrate the density for each point, projected from the bottom ($z_a$) to the top ($z_b$) of the sylinder. The distance to integrate is $2W_i$ for each point, centered around $z_i$.
+    \begin{align*}
+        z_i &= (x_i - x_{star}) \cdot \tan(\phi) \\
+        z_{i,a} &= z_i - W_i \\
+        z_{i,b} &= z_i + W_i
+    \end{align*}
+    $\exp(-z^2)$ is the gaussian. It's integral has no analytical solution, but it can be approximated by the error function (erf), which is a power series. erf is provided in the Python library SciPy (\texttt{scipy.special.erf}) and can handle arrays, which means that this integral can be performed for all the datapoints in the sylinder bin very quickly in a vectorized manner.
+    \begin{align*}
+        \lambda_i
+        &= \int_{z_{i,a}}^{z_{i,b}} \rho_0 \exp\left(- \frac{z_i^2}{2H^2}\right) \D{z_i} \\
+        &= \rho_0 \frac{\sqrt{\pi}}{2} \sqrt{2H^2}
+        \left[ \erf{\frac{z_{i,b}}{\sqrt{2H^2}}} - \erf{\frac{z_{i,a}}{\sqrt{2H^2}}} \right] \\
+        \rho_{\, bin} &= \frac{\sum_i \lambda_i}{\sum_i 2W_i}
+    \end{align*}
+    $\rho_{bin}$ is thus the mean density of one bin of the sylinder, and it has a corresponding $\Delta r$. A $\rho_{bin}$, $\Delta r$ pair is calculated for each of the $N_{bin}$ bins in each sylinder.
+
 
 \subsection{Integrating}
     %TODO
@@ -201,24 +243,31 @@ This is the most practical and maybe the most important section, as it explains 
 %-------------------------------------------------------------------------------
 
 \subsection{\texttt{input.xml}}
+    The file for the user to provide input parameters to \sname. You can copy and modify it. It is not a part of the source code itself.
     \lstinputlisting[language=XML]{../xml/input.xml}
 
 \subsection{\texttt{main.py}}
+    The script that is called when running \sname.
     \lstinputlisting[language=Python]{../src/main.py}
 
 \subsection{\texttt{DensityMap.py}}
+    Contains the class \texttt{DensityMap} for making an instance of a dataset representing a circumbinary disk. It contains most methods that can be performed on the data. Also contains a subclass \texttt{Sylinder}. Sylinders a sub-sets of a full dataset.
     \lstinputlisting[language=Python]{../src/DensityMap.py}
 
 \subsection{\texttt{Star.py}}
+    The simple \texttt{Star} class whose intention is to hold the physical parameters of each star.
     \lstinputlisting[language=Python]{../src/Star.py}
 
 \subsection{\texttt{Functions.py}}
+    A file containing some general functions that are used other places in the program.
     \lstinputlisting[language=Python]{../src/Functions.py}
 
 \subsection{\texttt{plot.py}}
+    A standalone script that can be used to plot the output of \sname. You can just as well use f.ex. TOPCAT.
     \lstinputlisting[language=Python]{../src/plot.py}
 
 \subsection{\texttt{make\_testdata.py}}
+    A standalone script that can be used to generate artificial datasets that can be analysed by \sname. You can use it for testing and for generating data according to any analytical function that you would like to analyse (then you need to change the function \texttt{density}).
     \lstinputlisting[language=Python]{../src/make_testdata.py}
 
 
