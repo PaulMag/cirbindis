@@ -429,7 +429,7 @@ class DensityMap:
             if save:
                 outname = (
                     "H=%g__"
-                    "r_in=%g__r_out=%g_"
+                    "r_in=%g__r_out=%g__"
                     "inc=%g"
                     % ( H,
                         self.radius_in,
