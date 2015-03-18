@@ -263,8 +263,25 @@ This is the most practical and maybe the most important section, as it explains 
     Then the software will run until it has completed the analysis of your datafile with all the parameters you specified.
 
 \subsection{Output}
-    %TODO
-    \textbf{TODO}
+    The output after a \sname analysis is a comma-separated-value (csv) file. The output file will be placed in the path you specified in \texttt{input.xml}. The filename contains the value of the parameters $H$, $r_{in}$, $r_{out}$, and inclination ($\phi$), separated by double underscores ``\_\_''. A filename can be f.ex.
+    ``\texttt{H=0.1\_\_r\_in=0.75\_\_r\_out=3\_\_inc=5.csv}''.
+    If you perform several analysis of the same dataset at once, f.ex. by providing several values for $r_{out}$, then one outfile will be produced for each different value of $r_{out}$.
+
+    The first line of the output is a header containing all the physical and numerical parameters for the simulation. There are two columns. The first column lists rotation angles $\theta$ in units of degrees. The second column lists the observed intensities given the respective angles, normalised so the mean intensity is $1$. A output file with \texttt{azimuthsteps=8} can look like this:
+\begin{verbatim*}
+#H=0.1, kappa=10, r_star=0.21-0.19, r_in=0.75, r_out=3, dr=0.75,
+dtheta=45deg, inc=5deg
+0.000000,0.000000
+45.000000,0.000000
+90.000000,0.000000
+135.000000,0.000000
+180.000000,7.644186
+225.000000,0.000000
+270.000000,0.355814
+315.000000,0.000000
+\end{verbatim*}
+
+
 
 %===============================================================================
 \section{Bibliography}
