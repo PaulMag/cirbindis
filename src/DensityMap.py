@@ -62,7 +62,11 @@ class DensityMap:
         # size of the disk:
         self.data[:, ~0] /= self.data[:, ~0].mean()
         self.data[:, ~0] *= (
-            self.diskmass / (np.pi * self.radius_out**2 * 2*self.H)
+            self.diskmass / (
+                np.pi * u.Quantity(50, "AU").to(
+                    u.Unit(self.unit["distance"])
+                ).value**2 * 2*self.H
+            )
         )
 
         if coordsystem == "cartesian":
