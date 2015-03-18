@@ -10,6 +10,8 @@
 \usepackage[margin=3cm]{geometry} % smaller margins
 \usepackage{grffile} % ex­tended file name sup­port for graph­ics, allows periods in filenames
 \usepackage{hyperref} % allows hyperlinks with the \href command
+\usepackage{algorithm}   % for writing pseudocode
+\usepackage{algorithmic} % for writing pseudocode
 
 % Set code style:
 \definecolor{darkgreen}{RGB}{0,135,0}
@@ -200,9 +202,39 @@ Any units can be used for the input data. How to specify units are covered in th
     $\rho_{bin}$ is thus the mean density of one bin of the sylinder, and it has a corresponding $\Delta r$. A $\rho_{bin}$, $\Delta r$ pair is calculated for each of the $N_{bin}$ bins in each sylinder.
 
 
-\subsection{Integrating}
-    %TODO
-    \textbf{TODO}
+\subsection{Integrating intensity}
+    For each bin $j$ in each sylinder, from the inside to he outside of the disk, the ratio of intensity transferred from one bin to the next is given by the following expression.
+    \begin{align*}
+        \tau_j &= \kappa \cdot \rho_{bin,j} \cdot \Delta r_j \\
+        I_{j+1} &= I_j \exp(-\tau_j)
+    \end{align*}
+    The resulting intensity passed on ny the outermost bin $I_{end}$ is the intensity of the star's radiation that escapes the disk and is observed by the observer on the current line of sight. If there are several stars and thus several sylindres, the total perceived intensity is simply the sum of the $I_{end,k}$ for each sylinder $k$.
+    $$
+    I_{total} = \sum_k I_{k,end}
+    $$
+
+\subsection{Full algorithm summary}
+    This is how one analysis is performed, and the product is one lightcurve. If providing different values for certain parameters, like different inclination angles or different outer radii then this analysis will be performed once for each different value of each parameter (different inclinations are actually analysed in quasi-parallell for efficiency).
+    \begin{algorithmic}
+        \FOR{each $\theta$ in $[0, \hdots, 2\pi]$}
+            \STATE rotate density datapoints angle $\theta$ with $R_z$
+            \STATE rotate stars angle $\theta$ with $R_z$
+            \FOR{each star $k$}
+                \STATE extract sylinder
+                \STATE bin sylinder
+                \FOR{each bin $j$ in sylinder}
+                    \STATE $\rho_{bin,j} =
+                        \dfrac{\int\int\int_{V_{bin,j}} \rho(x,y,z) \D{x}\D{y}\D{z}}
+                        {\pi r_{star,k}^2 \Delta r_j}$
+                    \STATE $\tau_j = \kappa \cdot \rho_{bin,j} \cdot \Delta r_j$
+                    \STATE $I_{k,j+1} = I_{k,j} \exp(-\tau_j)$
+                \ENDFOR
+            \ENDFOR
+            \STATE $I_{\theta,total} = \sum_k I_{k,end}$
+        \ENDFOR
+    \end{algorithmic}
+
+
 
 
 %===============================================================================
