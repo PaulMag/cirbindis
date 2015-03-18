@@ -402,14 +402,17 @@ class DensityMap:
 
         for j, inclination in enumerate(inclinations):
 
-            title = (
+            starradius = ""
+            for star in self.stars:
+                starradius += "%g-" % star.radius
+            starradius = starradius.rstrip("-")
+            header = (
                 "H=%g, kappa=%g, "
-                "r_star=%g, r_in=%g, r_out=%g, dr=%g, "
-                "dtheta=%g%s, inclination=%g%s"
+                "r_star=%s, r_in=%g, r_out=%g, dr=%g, "
+                "dtheta=%g%s, inc=%g%s"
                 % ( H,
                     self.kappa,
-                    #TODO One for each star.
-                    self.stars[0].radius,
+                    starradius,
                     self.radius_in,
                     self.radius_out,
                     (self.radius_out - self.radius_in) / n_radius,
@@ -419,14 +422,20 @@ class DensityMap:
                     unit,
                 )
             )
-            xlabel = "rotation angle [%s]" % unit
-            ylabel = "observed flux"
+            outname = (
+                "H=%g__"
+                "r_in=%g__r_out=%g_"
+                "inc=%g"
+                % ( H,
+                    self.radius_in,
+                    self.radius_out,
+                    inclination,
+                )
+            )
 
             if save:
-                outfile = open("../results/%s.csv" % title.replace(", ", "__"), "w")
-                outfile.write(title + "\n")
-                outfile.write(xlabel + "\n")
-                outfile.write(ylabel + "\n")
+                outfile = open("../results/%s.csv" % outname, "w")
+                outfile.write("#" + header + "\n")
                 for angle, flux in zip(angles, lightcurve[j]):
                     outfile.write("%f,%f\n" % (angle, flux))
                 outfile.close()
