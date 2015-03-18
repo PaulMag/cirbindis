@@ -45,6 +45,14 @@
     <system>cartesian</system>
         <!--Examples:  cartesian  |  polar -->
 
+    <!--==========Output data================================================-->
+    <!--The pathname to the folder to contain the output files. The pathname
+        must be relative to where you run the program from, or it can be an
+        absolute path. If the folder does not already exist it will be
+        created automatically.
+    -->
+    <outfolder>results</outfolder>
+
     <!--==========Disk boundaries============================================-->
     <!--Define the inner and out radius for where the disk exists. The
         dataset will be cropped to these limits, so it becomes a "donut".

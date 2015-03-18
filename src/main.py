@@ -30,4 +30,6 @@ if __name__ == "__main__":
                 n_radius=int(input_["radiussteps"]),
                 unit=input_["unit"]["angle"],
                 show=True,
+                save=True,
+                outfolder=input_["outfolder"],
             )

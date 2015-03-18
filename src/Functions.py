@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 
@@ -41,3 +42,15 @@ def pol2cart(r, theta):
     x = r * np.cos(theta)
     y = r * np.sin(theta)
     return [x, y]
+
+
+def make_folder(directory, warning=False):
+    """Make the directory, but do nothing if it already exists. Optionally
+    print a warning if it already exists, if there should be a reason for
+    that.
+    """
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    else:
+        if warning:
+            print "%s already exists." % (directory)

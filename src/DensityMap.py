@@ -27,6 +27,7 @@ class DensityMap:
         data=None,
         filename=None,
         coordsystem="cartesian",
+        outfolder=None,
         unit=None,
         inclinations=None,
         radius_in=0,
@@ -43,6 +44,7 @@ class DensityMap:
             self.inclinations = inclinations
         except TypeError:
             self.inclinations = [inclinations]
+        self.outfolder = outfolder
         self.unit = unit
         self.stars = []
         self.radius_in = radius_in
@@ -338,6 +340,7 @@ class DensityMap:
         dr=None,
         save=False,
         show=False,
+        outfolder=None,
     ):
         """Makes a lightcurve by calling the other methods for each orientation
         of the dataset. Sort of a main method.
@@ -422,19 +425,21 @@ class DensityMap:
                     unit,
                 )
             )
-            outname = (
-                "H=%g__"
-                "r_in=%g__r_out=%g_"
-                "inc=%g"
-                % ( H,
-                    self.radius_in,
-                    self.radius_out,
-                    inclination,
-                )
-            )
-
             if save:
-                outfile = open("../results/%s.csv" % outname, "w")
+                outname = (
+                    "H=%g__"
+                    "r_in=%g__r_out=%g_"
+                    "inc=%g"
+                    % ( H,
+                        self.radius_in,
+                        self.radius_out,
+                        inclination,
+                    )
+                )
+                if outfolder is None:
+                    outfolder = self.outfolder
+                func.make_folder(outfolder)
+                outfile = open("%s/%s.csv" % (outfolder, outname), "w")
                 outfile.write("#" + header + "\n")
                 for angle, flux in zip(angles, lightcurve[j]):
                     outfile.write("%f,%f\n" % (angle, flux))
@@ -448,9 +453,9 @@ class DensityMap:
                 )
 
         if show:
-            plt.title(title)
-            plt.xlabel(xlabel)
-            plt.ylabel(ylabel)
+            plt.title(header)
+            plt.xlabel("rotational angle [degree]")
+            plt.ylabel("relative intensity")
             plt.legend()
             plt.show()
 
