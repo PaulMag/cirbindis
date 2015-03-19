@@ -78,10 +78,13 @@
 
     <!--==========Other physical disk parameters=============================-->
     <!--Total mass of disk, excluding the stars.
+        Total radius of the disk, including the far outer parts that are not
+        considered in the analysis.
         Opacity, in units of [cm^2/g].
         Thickness of disk.
     -->
     <diskmass>0.01</diskmass>
+    <diskradius>985</diskradius>  <!--50 AU in current units.-->
     <kappa>10.0</kappa> <!--[cm^2/g].-->
     <H0>0.1</H0>
 
