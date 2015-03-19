@@ -172,55 +172,67 @@ Any units can be used for the input data. How to specify units are covered in th
 
 
 \subsection{Mean density of bins, weighted and integrated}
-    For each bin a mean density is produced from all the datapoints in that bin. This is done by dividing the total mass of the sylinder with its volume. The mass of a sylinder can be calculated from the following integral.
-    $$
-    M_{bin,j} = \int\int\int_{V_{bin,j}} \rho(x,y,z) \D{x}\D{y}\D{z}
-    $$
-    All our density datapoints are in the $xy$-plane, so the $x$ and $y$ part of the integral can be evaluated discretely by summing the density of each datapoint $\rho_{0,i}$ multiplied with its respective (finite) $\D{x_i}\D{y_i}$. We will assume that the datapoints in the grid is spaced evenly. This is not necessarily true, but it should be approximately true for most cases, especially if the size of the bin is much smaller than the whole dataset. In this case $\D{x_i}$ and $\D{y_i}$ is the same for every datapoint.
-    \begin{align*}
-        M_{bin}
-            &= \int_{z_{i,a}}^{z_{i,b}} \D{z}
-                \int\int_{S_{bin}} \rho(x_i,y_i) \D{x_i}\D{y_i} \\
-            &= \int_{z_{i,a}}^{z_{i,b}} \D{z}
-                \sum_i \rho_{0,i} \D{x_i}\D{y_i} \\
-        \rho_{bin,j} &= \frac{M_{bin}}{V_{bin}} \\
-            &= \int_{z_{i,a}}^{z_{i,b}} \D{z}
-                \sum_i \rho_{0,i}
-                \frac{\D{x_i}\D{y_i}}{\Delta r_j 2 r_{star} h_i}
-    \end{align*}
-    $\D{x_i}\D{y_i}$ is the surface covered by one datapoint and $\Delta r_j 2 r_{star}$ is the surface covered by the entire bin. Multiplying by their ratio is the same as dividing by the total number of points in the bin.
-    \begin{align*}
-        \rho_{bin,j}
-            &= \sum_i \rho_{0,i} \frac{1}{N_{bin,j}} \\
-            &= \textrm{mean}(\rho_{0,i})
-    \end{align*}
 
-    $\rho(z)$ is the assumed density at a point with altitude $z$ above a point in the disk plane with density $\rho_0$.
-    $$
-    \rho(z) = \rho_0 \exp\left(- \frac{z^2}{2H^2}\right)
-    $$
-    Each density point is given a weight according to where it is in the sylinder. Points closer to the middle of the sylinder gains larger weight because they represent its fulll height and thus a larger area than points near the edges.
-    (\textbf{TODO:} There needs to be a figure of this to illustrate it more cleary.)
-    $$
-    W_i(y) = \frac{\sqrt{r_{star}^2 - (y_i - y_{star})^2}}{\cos(\phi)}
-    $$
-    The factor $1/\cos(\phi)$ adjusts the height of the sylinder if it is inclined so that it is always shaped like a circular sylinder.
+    \subsubsection{Mass integral}
+        For each bin a mean density is produced from all the datapoints in that bin. This is done by dividing the total mass of the sylinder with its volume. The mass of a sylinder can be calculated from the following integral.
+        $$
+        M_{bin,j} = \int\int\int_{V_{bin,j}} \rho(x,y,z) \D{x}\D{y}\D{z}
+        $$
+        All our density datapoints are in the $xy$-plane, so the $x$ and $y$ part of the integral can be evaluated by summing the density of each datapoint $\rho_{0,i}$ multiplied with its respective discrete $\D{x_i}\D{y_i}$. We will assume that the datapoints in the grid is spaced evenly. This is not necessarily true, but it should be approximately true for most cases, especially if the size of the bin is much smaller than the whole dataset. In this case $\D{x_i}$ and $\D{y_i}$ is the same for every datapoint.
 
-    To get the density inside the entire area of the slice of the sylinder and the variations in density from different altitudes we integrate the density for each point, projected from the bottom ($z_a$) to the top ($z_b$) of the sylinder. The distance to integrate is $2W_i$ for each point, centered around $z_i$.
-    \begin{align*}
-        z_i &= (x_i - x_{star}) \cdot \tan(\phi) \\
-        z_{i,a} &= z_i - W_i \\
-        z_{i,b} &= z_i + W_i
-    \end{align*}
-    $\exp(-z^2)$ is the gaussian. It's integral has no analytical solution, but it can be approximated by the error function (erf), which is a power series. erf is provided in the Python library SciPy (\texttt{scipy.special.erf}) and can handle arrays, which means that this integral can be performed for all the datapoints in the sylinder bin very quickly in a vectorized manner.
-    \begin{align*}
-        \lambda_i
-        &= \int_{z_{i,a}}^{z_{i,b}} \rho_0 \exp\left(- \frac{z_i^2}{2H^2}\right) \D{z_i} \\
-        &= \rho_0 \frac{\sqrt{\pi}}{2} \sqrt{2H^2}
-        \left[ \erf{\frac{z_{i,b}}{\sqrt{2H^2}}} - \erf{\frac{z_{i,a}}{\sqrt{2H^2}}} \right] \\
-        \rho_{\, bin} &= \frac{\sum_i \lambda_i}{\sum_i 2W_i}
-    \end{align*}
-    $\rho_{bin}$ is thus the mean density of one bin of the sylinder, and it has a corresponding $\Delta r$. A $\rho_{bin}$, $\Delta r$ pair is calculated for each of the $N_{bin}$ bins in each sylinder.
+        Whe have no data for density variation in the $z$-dicetion. Instead we assume a gaussian decrese of density with increasing distance from the midplane. $\rho(z)$ is the assumed density at a point with altitude $z$ above a point $i$ in the midplane with density $\rho_0$.
+        $$
+        \rho(x_i, y_i, z) = \rho_0(x_i, y_i) \cdot \exp\left(- \frac{z^2}{2H^2}\right)
+        $$
+        Thus the mass integral has a discrete part and an analytical part. The limits of the discrete part is the area of the midplane $S_{bin}$ contained in the sylinder and is such that $N_{bin} \D{x_i}\D{y_i} = S_{bin}$. The limits for $z$ are explained in the following subsection.
+        \begin{align*}
+            M_{bin}
+                &= \int\int_{S_{bin}} \rho_0(x_i,y_i) \D{x_i}\D{y_i} \cdot
+                    \int_{z_{i,a}}^{z_{i,b}} \exp\left(- \frac{z^2}{2H^2}\right) \D{z} \\
+                &= \sum_i \left(
+                        \rho_{0,i} \D{x_i}\D{y_i} \cdot
+                        \frac{\sqrt{\pi}}{2} \sqrt{2H^2}
+                        \left[
+                            \erf{\frac{z_{i,b}}{\sqrt{2H^2}}} -
+                            \erf{\frac{z_{i,a}}{\sqrt{2H^2}}}
+                        \right]
+                    \right)
+    %         \rho_{bin,j} &= \frac{M_{bin}}{V_{bin}} \\
+    %             &= \int_{z_{i,a}}^{z_{i,b}} \D{z}
+    %                 \sum_i \rho_{0,i}
+    %                 \frac{\D{x_i}\D{y_i}}{\Delta r_j 2 r_{star} h_i}
+        \end{align*}
+    %     $\D{x_i}\D{y_i}$ is the surface covered by one dat66apoint and $\Delta r_j 2 r_{star}$ is the surface covered by the entire bin. Multiplying by their ratio is the same as dividing by the total number of points in the bin.
+    %     \begin{align*}
+    %         \rho_{bin,j}
+    %             &= \sum_i \rho_{0,i} \frac{1}{N_{bin,j}} \\
+    %             &= \textrm{mean}(\rho_{0,i})
+    %     \end{align*}
+
+    \subsubsection{The $z$-limits}
+        Each density point is given a weight according to where it is in the sylinder. Points closer to the middle of the sylinder gains larger weight because they represent its fulll height and thus a larger area than points near the edges.
+        (\textbf{TODO:} There needs to be a figure of this to illustrate it more cleary.)
+        $$
+        W_i(y) = \frac{\sqrt{r_{star}^2 - (y_i - y_{star})^2}}{\cos(\phi)}
+        $$
+        The factor $1/\cos(\phi)$ adjusts the height of the sylinder if it is inclined so that it is always shaped like a circular sylinder.
+
+        To get the density inside the entire area of the slice of the sylinder and the variations in density from different altitudes we integrate the density for each point, projected from the bottom ($z_a$) to the top ($z_b$) of the sylinder. The distance to integrate is $2W_i$ for each point, centered around $z_i$.
+        \begin{align*}
+            z_i &= (x_i - x_{star}) \cdot \tan(\phi) \\
+            z_{i,a} &= z_i - W_i \\
+            z_{i,b} &= z_i + W_i
+        \end{align*}
+
+%     $\exp(-z^2)$ is the gaussian. It's integral has no analytical solution, but it can be approximated by the error function (erf), which is a power series. erf is provided in the Python library SciPy (\texttt{scipy.special.erf}) and can handle arrays, which means that this integral can be performed for all the datapoints in the sylinder bin very quickly in a vectorized manner.
+%     \begin{align*}
+%         \lambda_i
+%         &= \int_{z_{i,a}}^{z_{i,b}} \rho_0 \exp\left(- \frac{z_i^2}{2H^2}\right) \D{z_i} \\
+%         &= \rho_0 \frac{\sqrt{\pi}}{2} \sqrt{2H^2}
+%         \left[ \erf{\frac{z_{i,b}}{\sqrt{2H^2}}} - \erf{\frac{z_{i,a}}{\sqrt{2H^2}}} \right] \\
+%         \rho_{\, bin} &= \frac{\sum_i \lambda_i}{\sum_i 2W_i}
+%     \end{align*}
+%     $\rho_{bin}$ is thus the mean density of one bin of the sylinder, and it has a corresponding $\Delta r$. A $\rho_{bin}$, $\Delta r$ pair is calculated for each of the $N_{bin}$ bins in each sylinder.
 
 
 \subsection{Integrating intensity}
