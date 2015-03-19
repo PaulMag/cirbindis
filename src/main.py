@@ -20,6 +20,7 @@ if __name__ == "__main__":
                 radius_in=radius_in,
                 radius_out=radius_out,
                 diskmass=float(input_["diskmass"]),
+                diskradius=float(input_["diskradius"]),
                 H=float(input_["H0"]),
                 kappa=float(input_["kappa"]),
             )

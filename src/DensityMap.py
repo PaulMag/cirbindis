@@ -33,6 +33,7 @@ class DensityMap:
         radius_in=0,
         radius_out=np.inf,
         diskmass=.01,
+        diskradius=1000.,
         H=1.,
         kappa=10.
     ):
@@ -49,7 +50,6 @@ class DensityMap:
         self.stars = []
         self.radius_in = radius_in
         self.radius_out = radius_out
-        self.diskmass = diskmass
         self.H = H
         self.kappa = kappa  # [cm^2 / g]
             # Between 5 and 100 according to Boubier et al. 1999.
@@ -60,17 +60,6 @@ class DensityMap:
         elif filename is not None:
             self.load(filename)
 
-        # Convert density to physical units related to the total mass and
-        # size of the disk:
-        self.data[:, ~0] /= self.data[:, ~0].mean()
-        self.data[:, ~0] *= (
-            self.diskmass / (
-                np.pi * u.Quantity(50, "AU").to(
-                    u.Unit(self.unit["distance"])
-                ).value**2 * 2*self.H
-            )
-        )
-
         if coordsystem == "cartesian":
             pass
         elif coordsystem == "polar":
@@ -78,6 +67,8 @@ class DensityMap:
             self.data[:, 0], self.data[:, 1] = x, y
         else:
             raise KeyError("Coordinate system must be 'cartesian' or 'polar'.")
+
+        self.set_physical_units(diskmass, diskradius)
 
 
     def add_star(self, d=None, position=None, radius=None, intensity=None):
@@ -150,6 +141,40 @@ class DensityMap:
         infile.close()
         t_end = time.time()  # End of timer.
         print "Loading took %f seconds." % (t_end - t_start)
+
+
+    def set_physical_units(self, mass_total, r_total):
+        """Convert density to physical units related to the total mass and
+        size of the disk.
+        """
+
+        r_in = u.Quantity(self.radius_in, self.unit["distance"])
+        r_out = u.Quantity(self.radius_out, self.unit["distance"])
+        r_total = u.Quantity(r_total, self.unit["distance"])
+        H = u.Quantity(self.H, self.unit["distance"])
+        mass_total = u.Quantity(mass_total, self.unit["mass"])
+
+        mass_central = (
+            (r_out**0.5 - r_in**0.5) /
+            (r_total**0.5 - r_in**0.5) *
+            mass_total
+        )
+        rho_central = (
+            mass_central / (2*np.pi * (r_out**2 - r_in**2) * 2*H)
+        ).to(u.Unit(self.unit["mass"]) / u.Unit(self.unit["distance"])**3).value
+
+        # Simple static alternative:
+        # rho_central = (
+            # mass_total.value / (
+                # np.pi * u.Quantity(50, "AU").to(
+                    # u.Unit(self.unit["distance"])
+                # ).value**2 * 2*self.H
+            # )
+        # )
+
+        # self.data[:, ~0] /= self.data[:, ~0].mean()
+            # Normalize before scaling, or not?
+        self.data[:, ~0] *= rho_central
 
 
     def writeto(self, filename, method="pickle", separator=" "):
