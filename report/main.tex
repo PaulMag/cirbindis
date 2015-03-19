@@ -210,12 +210,13 @@ Any units can be used for the input data. How to specify units are covered in th
     %     \end{align*}
 
     \subsubsection{The $z$-limits}
-        Each density point is given a weight according to where it is in the sylinder. Points closer to the middle of the sylinder gains larger weight because they represent its fulll height and thus a larger area than points near the edges.
-        (\textbf{TODO:} There needs to be a figure of this to illustrate it more cleary.)
+        Each density point is given a weight according to where it is in the sylinder. Points closer to the middle of the sylinder gains larger weight because they represent its fulll height and thus a larger volume than points near the edges. This is illustrated in figure \vref{weight_explanation}.
         $$
         W_i(y) = \frac{\sqrt{r_{star}^2 - (y_i - y_{star})^2}}{\cos(\phi)}
         $$
         The factor $1/\cos(\phi)$ adjusts the height of the sylinder if it is inclined so that it is always shaped like a circular sylinder.
+        \bilde{figures/weight_explanation}{weight_explanation}
+        {A cross-section of the sylinder. The figure shows how the limits $z_{i,a}$ and $z_{i,b}$ for each datapoint depend on that point's $y$-component $y_i$. The position of $z_{i,a}$ in the figure is the same as for $z_{i,b}$, but mirrored to the lower half of the circle.}
 
         To get the density inside the entire area of the slice of the sylinder and the variations in density from different altitudes we integrate the density for each point, projected from the bottom ($z_a$) to the top ($z_b$) of the sylinder. The distance to integrate is $2W_i$ for each point, centered around $z_i$.
         \begin{align*}
