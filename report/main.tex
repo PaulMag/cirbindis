@@ -178,12 +178,15 @@ Any units can be used for the input data. How to specify units are covered in th
     $$
     All our density datapoints are in the $xy$-plane, so the $x$ and $y$ part of the integral can be evaluated discretely by summing the density of each datapoint $\rho_{0,i}$ multiplied with its respective (finite) $\D{x_i}\D{y_i}$. We will assume that the datapoints in the grid is spaced evenly. This is not necessarily true, but it should be approximately true for most cases, especially if the size of the bin is much smaller than the whole dataset. In this case $\D{x_i}$ and $\D{y_i}$ is the same for every datapoint.
     \begin{align*}
-        M_{bin,j}
-            &= \int\int_{S_{bin,j}} \rho(x_i,y_i) \D{x_i}\D{y_i} \\
-            &= \sum_i \rho_{0,i} \D{x_i}\D{y_i} \\
-            &= \sum_i \rho_{0,i} \Delta r_j 2 r_{star} \\
-        \rho_{bin,j} &= \frac{M_{bin,j}}{S} \\
-            &= \sum_i \rho_{0,i} \frac{\D{x_i}\D{y_i}}{\Delta r_j 2 r_{star}}
+        M_{bin}
+            &= \int_{z_{i,a}}^{z_{i,b}} \D{z}
+                \int\int_{S_{bin}} \rho(x_i,y_i) \D{x_i}\D{y_i} \\
+            &= \int_{z_{i,a}}^{z_{i,b}} \D{z}
+                \sum_i \rho_{0,i} \D{x_i}\D{y_i} \\
+        \rho_{bin,j} &= \frac{M_{bin}}{V_{bin}} \\
+            &= \int_{z_{i,a}}^{z_{i,b}} \D{z}
+                \sum_i \rho_{0,i}
+                \frac{\D{x_i}\D{y_i}}{\Delta r_j 2 r_{star} h_i}
     \end{align*}
     $\D{x_i}\D{y_i}$ is the surface covered by one datapoint and $\Delta r_j 2 r_{star}$ is the surface covered by the entire bin. Multiplying by their ratio is the same as dividing by the total number of points in the bin.
     \begin{align*}
