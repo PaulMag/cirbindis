@@ -172,7 +172,25 @@ Any units can be used for the input data. How to specify units are covered in th
 
 
 \subsection{Mean density of bins, weighted and integrated}
-    For each bin a mean density is produced from all the datapoints in that bin. Each point is also projected vertically up from the disk (orthogonal to the disk plane) and into the area it represents in a sylinder that is inclined with respect to the disk.
+    For each bin a mean density is produced from all the datapoints in that bin. This is done by dividing the total mass of the sylinder with its volume. The mass of a sylinder can be calculated from the following integral.
+    $$
+    M_{bin,j} = \int\int\int_{V_{bin,j}} \rho(x,y,z) \D{x}\D{y}\D{z}
+    $$
+    All our density datapoints are in the $xy$-plane, so the $x$ and $y$ part of the integral can be evaluated discretely by summing the density of each datapoint $\rho_{0,i}$ multiplied with its respective (finite) $\D{x_i}\D{y_i}$. We will assume that the datapoints in the grid is spaced evenly. This is not necessarily true, but it should be approximately true for most cases, especially if the size of the bin is much smaller than the whole dataset. In this case $\D{x_i}$ and $\D{y_i}$ is the same for every datapoint.
+    \begin{align*}
+        M_{bin,j}
+            &= \int\int_{S_{bin,j}} \rho(x_i,y_i) \D{x_i}\D{y_i} \\
+            &= \sum_i \rho_{0,i} \D{x_i}\D{y_i} \\
+            &= \sum_i \rho_{0,i} \Delta r_j 2 r_{star} \\
+        \rho_{bin,j} &= \frac{M_{bin,j}}{S} \\
+            &= \sum_i \rho_{0,i} \frac{\D{x_i}\D{y_i}}{\Delta r_j 2 r_{star}}
+    \end{align*}
+    $\D{x_i}\D{y_i}$ is the surface covered by one datapoint and $\Delta r_j 2 r_{star}$ is the surface covered by the entire bin. Multiplying by their ratio is the same as dividing by the total number of points in the bin.
+    \begin{align*}
+        \rho_{bin,j}
+            &= \sum_i \rho_{0,i} \frac{1}{N_{bin,j}} \\
+            &= \textrm{mean}(\rho_{0,i})
+    \end{align*}
 
     $\rho(z)$ is the assumed density at a point with altitude $z$ above a point in the disk plane with density $\rho_0$.
     $$
