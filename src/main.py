@@ -10,8 +10,10 @@ if __name__ == "__main__":
     input_ = xmltodict.parse(infile)["input"]
     infile.close()
 
+
     for radius_in in func.to_list(input_["radius_in"], float):
         for radius_out in func.to_list(input_["radius_out"], float):
+
             dataset = DensityMap(
                 filename=input_["datafile"],
                 coordsystem=input_["system"],
@@ -24,8 +26,17 @@ if __name__ == "__main__":
                 H=float(input_["H0"]),
                 kappa=float(input_["kappa"]),
             )
+
+            for filename in func.to_list(input_["resave_as"]):
+                if filename is None:
+                    continue
+                elif len(filename) == 0:
+                    continue
+                dataset.writeto(filename)
+
             for star in func.to_list(input_["star"]):
                 dataset.add_star(star)
+
             dataset.make_lightcurve(
                 n_angle=int(input_["azimuthsteps"]),
                 n_radius=int(input_["radiussteps"]),

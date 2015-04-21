@@ -5,17 +5,18 @@ import numpy as np
 def to_list(x, dtype=None, separator=" "):
     """Converts any sequence or non-sequence into an array.
 
-    The use of a numpy array is primarely because then it is easy to also convert the type. Except for that it couls just as well be a list.
+    The use of a numpy array is primarely used because then it is easy to
+    also convert the type. Except for that it could just as well be a list.
 
     If x is a string, split the string with the separator.
     If x is a sequence, convert it into an array.
-    If x is a non-sequence, but it into a size-1 array.
+    If x is a non-sequence, put it into a size-1 array.
 
     X: (anything)  Something to be converted into an array.
     dtype: (type) What type of objects the array contains. F.ex. float. If
         None, numpy will interpret the type itself.
-    separator: (string) If x is a list to be splitted, this is the
-        separator. Normally a space or comma.
+    separator: (string) If x is a string to be split, this is the separator.
+        Usually a space or comma.
     """
 
     if isinstance(x, basestring):  # If x is a string.

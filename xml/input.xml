@@ -42,6 +42,15 @@
         cartesian (x,y) or polar (r,theta).
     -->
     <datafile>data/data_cropped.p</datafile>
+    <resave_as></resave_as>
+        <!--If you provide a pathname here the cropped version (according to
+            "Disk Boundaries) of the input datafile will be saved. This
+            cropped version of the data can then be used as the input
+            datafile later. If you use "*.p" or "*.pickle" as filename it
+            will be saved as a pickle file. This field is optional. If left
+            blank nothing will happen. If several pathnames are provided
+            (separated with spaces) several copies will be made.
+        -->
     <system>cartesian</system>
         <!--Examples:  cartesian  |  polar -->
 

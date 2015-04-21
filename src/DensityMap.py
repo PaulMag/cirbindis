@@ -177,7 +177,7 @@ class DensityMap:
         self.data[:, ~0] *= rho_central
 
 
-    def writeto(self, filename, method="pickle", separator=" "):
+    def writeto(self, filename, method=None, separator=" "):
         """Write self.data to a file for later use.
 
         Assumed to be on the form 'x,y,z,density' which represents a point in
@@ -185,14 +185,22 @@ class DensityMap:
 
         filename: (string) Full pathname to outfile for writing data.
         method: (string) What kind of writing algorithm to use. Recommended to
-            use 'pickle' if it will be loaded by this program later (faster) and
-            'ascii' for any other purpose.
+            use 'pickle' if it will be loaded by this program later (faster)
+            and 'ascii' for any other purpose. If none is given, will try to
+            automatically find out by looking at filename ending.
         separator: (string) If method='ascii' this is the separator between the
-            values each line. Usually a space or comma. Ignored if method='pickle'.
+            values each line. Usually a space or comma. Ignored if
+            method='pickle'.
         """
 
         t_start = time.time()
             # Just to time the writing, in case of large dataset.
+
+        if method is None:
+            if filename.endswith(".p") or filename.endswith(".pickle"):
+                method = "pickle"
+            else:
+                method = "ascii"
 
         if method == "pickle":
             outfile = open(filename, "wb")
