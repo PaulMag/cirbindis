@@ -220,24 +220,6 @@ class DensityMap:
         print "Writing took %f seconds." % (t_end - t_start)
 
 
-    def set_r0(self, r0=1.49597871e13):
-        self.r0=r0  # [centimeters]
-
-    def set_H(self, H0=0.03, H_power=1/4.):
-        self.H0 = H0
-        self.H_power = H_power
-
-    def get_H(self, r):
-        return r * self.H0 * (r / self.r0)**self.H_power  # [centimeters]
-
-    def set_sigma(self, sigma0=1700., sigma_power=-3/2.):
-        self.sigma0 = sigma0
-        self.sigma_power = sigma_power
-
-    def get_sigma(self, r):
-        return self.sigma0 * (r / self.r0)**self.sigma_power  # [g / cm^2]
-
-
     def rotate(self, angle_z=0, unit="deg"):
         """Rotate entire dataset by an angle around any axis.
 
