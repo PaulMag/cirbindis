@@ -1,6 +1,8 @@
+import numpy as np
 import xmltodict
 
 from DensityMap import DensityMap
+from Star import Star
 import Functions as func
 
 
@@ -12,6 +14,16 @@ if __name__ == "__main__":
 
 
     for radius_in in func.to_list(input_["radius_in"], float):
+
+        if radius_in is None or np.isnan(radius_in):
+            radius_largest = 0.
+            for stardict in func.to_list(input_["star"]):
+                star = Star(stardict)
+                radius = np.linalg.norm(star.position) + star.radius
+                if radius > radius_largest:
+                    radius_largest = radius
+            radius_in = radius_largest
+
         for radius_out in func.to_list(input_["radius_out"], float):
 
             dataset = DensityMap(
