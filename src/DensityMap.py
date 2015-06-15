@@ -484,7 +484,7 @@ class DensityMap:
             plt.title("\n".join(textwrap.wrap(header.split(", inc")[0], 70)))
             plt.xlabel("rotational angle [degree]")
             plt.ylabel("normalized intensity")
-            plt.legend()
+            plt.legend(loc="best")
             plt.gca().get_yaxis().get_major_formatter().set_useOffset(False)
             plt.tight_layout()
             plt.show()
