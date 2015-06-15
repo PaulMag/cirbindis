@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 from scipy import integrate
 from scipy import special
 import astropy.units as u
+import textwrap
+    # String manipulations.
 
 from Star import Star
 import Functions as func
@@ -26,6 +28,7 @@ class DensityMap:
     def __init__(self,
         data=None,
         filename=None,
+        dataname=None,
         coordsystem="cartesian",
         outfolder=None,
         unit=None,
@@ -45,6 +48,10 @@ class DensityMap:
             self.inclinations = inclinations
         except TypeError:
             self.inclinations = [inclinations]
+        if dataname is None or dataname == "":
+            self.dataname = filename.split("/")[~0]
+        else:
+            self.dataname = dataname
         self.outfolder = outfolder
         self.unit = unit
         self.stars = []
@@ -56,7 +63,6 @@ class DensityMap:
 
         if data is not None:
             self.data = data
-
         elif filename is not None:
             self.load(filename)
 
@@ -422,16 +428,21 @@ class DensityMap:
         for j, inclination in enumerate(inclinations):
 
             starradius = ""
+            starflux = ""
             for star in self.stars:
                 starradius += "%g-" % star.radius
+                starflux += "%g-" % star.intensity
             starradius = starradius.rstrip("-")
+            starflux = starflux.rstrip("-")
             header = (
-                "H=%g, kappa=%g, "
-                "r_star=%s, r_in=%g, r_out=%g, dr=%g, "
+                "%s, H=%g, kappa=%g, "
+                "r_star=%s, flux_star=%s, r_in=%g, r_out=%g, dr=%g, "
                 "dtheta=%g%s, inc=%g%s"
-                % ( H,
+                % ( self.dataname,
+                    H,
                     self.kappa,
                     starradius,
+                    starflux,
                     self.radius_in,
                     self.radius_out,
                     (self.radius_out - self.radius_in) / n_radius,
@@ -443,10 +454,11 @@ class DensityMap:
             )
             if save:
                 outname = (
-                    "H=%g__"
+                    "%s__H=%g__"
                     "r_in=%g__r_out=%g__"
-                    "inc=%g"
-                    % ( H,
+                    "inc=%02g"
+                    % ( self.dataname,
+                        H,
                         self.radius_in,
                         self.radius_out,
                         inclination,
@@ -469,10 +481,12 @@ class DensityMap:
                 )
 
         if show:
-            plt.title(header)
+            plt.title("\n".join(textwrap.wrap(header.split(", inc")[0], 70)))
             plt.xlabel("rotational angle [degree]")
-            plt.ylabel("relative intensity")
+            plt.ylabel("normalized intensity")
             plt.legend()
+            plt.gca().get_yaxis().get_major_formatter().set_useOffset(False)
+            plt.tight_layout()
             plt.show()
 
 

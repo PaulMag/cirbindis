@@ -28,6 +28,7 @@ if __name__ == "__main__":
 
             dataset = DensityMap(
                 filename=input_["datafile"],
+                dataname=input_["dataname"],
                 coordsystem=input_["system"],
                 unit=input_["unit"],
                 inclinations=func.to_list(input_["inclination"], float),

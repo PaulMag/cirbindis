@@ -41,16 +41,24 @@
         file. If it is ASCII you must also specify if the coordinates are
         cartesian (x,y) or polar (r,theta).
     -->
-    <datafile>data/data_cropped.p</datafile>
+    <datafile>data/data_0.25</datafile>
+    <!--A name/identifier for the current dataset. This name will be included
+        in the filenames of the output lightcurves and in the title of the
+        plots. This field is optional. If left blank the datafilename will be
+        used as the default dataname.
+    -->
+    <dataname></dataname>
+        <!--Examples:  data0032  |  cs=0.25 -->
+    <!--If you provide a pathname here the cropped version (according to
+        "Disk Boundaries) of the input datafile will be saved. This cropped
+        version of the data can then be used as the input datafile later. If
+        you use "*.p" or "*.pickle" as filename it will be saved as a pickle
+        file. This field is optional. If left blank nothing will happen. If
+        several pathnames are provided (separated with spaces) several
+        copies will be made.
+    -->
     <resave_as></resave_as>
-        <!--If you provide a pathname here the cropped version (according to
-            "Disk Boundaries) of the input datafile will be saved. This
-            cropped version of the data can then be used as the input
-            datafile later. If you use "*.p" or "*.pickle" as filename it
-            will be saved as a pickle file. This field is optional. If left
-            blank nothing will happen. If several pathnames are provided
-            (separated with spaces) several copies will be made.
-        -->
+        <!--Examples:  data_0.25_cropped3.0.csv  |  data_0.25_cropped3.0.p -->
     <system>cartesian</system>
         <!--Examples:  cartesian  |  polar -->
 
@@ -72,9 +80,9 @@
         to the radius that defines the largest circle that can fit within
         the dataset.
     -->
-    <radius_in>1</radius_in>
+    <radius_in>1.0</radius_in>
         <!--Examples:  1  |  1.5  |  1 1.25 1.5 -->
-    <radius_out>3</radius_out>
+    <radius_out>3.0</radius_out>
         <!--Examples:  3  |  5  |  4 6  |  3 5 7.5 10 -->
 
     <!--==========Inclinations===============================================-->
