@@ -328,7 +328,7 @@ class DensityMap:
 
         mask = (
             (self.data_rotated[:, 0] > 0) *
-            (self.distance(star.position_rotated) <= star.radius)
+            (self.distance(star.position) <= star.radius)
         )
         data_sylinder = self.data_rotated[np.where(mask)]
         return data_sylinder
@@ -605,10 +605,10 @@ class Sylinder(DensityMap):
                 drs[i] = data[end, 0] - data[start, 0]
             W = np.sqrt(
                 self.star.radius**2 -
-                (data[start:end, 1] - self.star.position_rotated[1])**2
+                (data[start:end, 1] - self.star.position[1])**2
             ) / np.cos(inclination)
             z = (
-                (data[start:end, 0] - self.star.position_rotated[0]) *
+                (data[start:end, 0] - self.star.position[0]) *
                 np.tan(inclination)
             )
             z1 = z - W
