@@ -52,6 +52,7 @@ class DensityMap:
             self.dataname = filename.split("/")[~0]
         else:
             self.dataname = dataname
+        print "Loading dataset '%s' \nfrom file '%s'..." % dataname, filename
         self.outfolder = outfolder
         self.unit = unit
         self.stars = []
@@ -549,10 +550,7 @@ class DensityMap:
                 if outfolder is None:
                     outfolder = self.outfolder
                 func.make_folder(outfolder)
-                fig.savefig(
-                    "%s/%s.png" % (outfolder, outname),
-                    bbox_inches='tight',
-                )
+                fig.savefig("%s/%s.png" % (outfolder, outname))
 
         if show:
             plt.show()
