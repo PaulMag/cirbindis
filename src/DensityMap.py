@@ -431,7 +431,17 @@ class DensityMap:
                     lightcurve[j, i] += sylinder.integrate()
         print "%f / %f" % (theta, theta)
 
-        lightcurve /= lightcurve.mean(axis=1)[:, None]
+        # Choose normalization method (only hardcoded for now):
+        normalization = "unobscured"
+        if normalization == "unobscured":
+            unobscured_intensity = 0.
+            for star in self.stars:
+                unobscured_intensity += star.intensity
+            lightcurve /= unobscured_intensity
+        elif normalization == "max":
+            lightcurve /= lightcurve.max(axis=1)[:, None]
+        elif normalization == "mean":
+            lightcurve /= lightcurve.mean(axis=1)[:, None]
 
         for j, inclination in enumerate(inclinations):
 
