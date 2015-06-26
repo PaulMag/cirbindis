@@ -55,6 +55,7 @@ if __name__ == "__main__":
                 n_radius=int(input_["radiussteps"]),
                 unit=input_["unit"]["angle"],
                 save=True,
+                savefig=True,
                 show=True,
                 normalizations=func.to_list(input_["normalization"]),
                 outfolder=input_["outfolder"],

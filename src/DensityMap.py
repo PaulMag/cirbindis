@@ -372,6 +372,7 @@ class DensityMap:
         n_radius=None,
         dr=None,
         save=False,
+        savefig=False,
         show=False,
         normalizations=["stellar"],
         short_title=True,
@@ -451,7 +452,7 @@ class DensityMap:
             elif "mean" in normalization:
                 lightcurve /= lightcurve.mean(axis=1)[:, None]
 
-            if show:
+            if show or savefig:
                 fig = plt.figure(figsize=(12,6))
                 fig.gca().get_yaxis().get_major_formatter().set_useOffset(False)
                 ax = fig.add_subplot(1,1,1)
@@ -506,14 +507,14 @@ class DensityMap:
                         outfile.write("%f,%f\n" % (angle, flux))
                     outfile.close()
 
-                if show:
+                if show or savefig:
                     ax.plot(
                         angles,
                         lightcurve[j],
                         label="%2g" % inclinations[j],
                     )
 
-            if show:
+            if show or savefig:
                 if short_title:
                     # Only use the name of the data in the title.
                     ax.set_title(self.dataname)
@@ -533,6 +534,25 @@ class DensityMap:
                     borderaxespad=0.,
                 )
 
+            if savefig:
+                outname = (
+                    "%s__H=%g__"
+                    "r_in=%g__r_out=%g__"
+                    "%snorm"
+                    % ( self.dataname,
+                        H,
+                        self.radius_in,
+                        self.radius_out,
+                        normalization,
+                    )
+                )
+                if outfolder is None:
+                    outfolder = self.outfolder
+                func.make_folder(outfolder)
+                fig.savefig(
+                    "%s/%s.png" % (outfolder, outname),
+                    bbox_inches='tight',
+                )
 
         if show:
             plt.show()
