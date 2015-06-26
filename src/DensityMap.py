@@ -262,7 +262,10 @@ class DensityMap:
             factor = np.pi / 180. * 60
         elif unit == "arcsec":
             factor = np.pi / 180. * 3600
-        angle_z *= factor
+        angle_z *= - factor
+            # Multiply by negative factor so that the disk is rotated
+            # clockwise. Then the line of sight (observer) is rotated
+            # counter-clockwise.
 
         # Make rotation matrix:
         rotation_matrix = np.matrix([
@@ -432,8 +435,8 @@ class DensityMap:
         print "%f / %f" % (theta, theta)
 
         # Choose normalization method (only hardcoded for now):
-        normalization = "unobscured"
-        if normalization == "unobscured":
+        normalization = "stellar flux"
+        if normalization == "stellar flux":
             unobscured_intensity = 0.
             for star in self.stars:
                 unobscured_intensity += star.intensity
@@ -498,10 +501,16 @@ class DensityMap:
                     label="inc=%2g" % inclinations[j],
                 )
 
+        short_title = True
         if show:
-            plt.title("\n".join(textwrap.wrap(header.split(", inc")[0], 70)))
-            plt.xlabel("rotational angle [degree]")
-            plt.ylabel("normalized intensity")
+            if short_title:
+                # Only use the name of the data in the title.
+                plt.title(self.dataname)
+            else:
+                # Use all metadata in the title.
+                plt.title("\n".join(textwrap.wrap(header.split(", inc")[0], 70)))
+            plt.xlabel("viewing angle [degree]")
+            plt.ylabel("flux [%s]" % normalization)
             plt.legend(loc="best")
             plt.gca().get_yaxis().get_major_formatter().set_useOffset(False)
             plt.tight_layout()
