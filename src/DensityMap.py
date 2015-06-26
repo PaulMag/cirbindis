@@ -155,28 +155,36 @@ class DensityMap:
         """
 
         r_in = u.Quantity(self.radius_in, self.unit["distance"])
+        print "r_in =", r_in
         r_out = u.Quantity(self.radius_out, self.unit["distance"])
+        print "r_out =", r_out
         r_total = u.Quantity(r_total, self.unit["distance"])
+        print "r_total =", r_total
         H = u.Quantity(self.H, self.unit["distance"])
+        print "H =", H
         mass_total = u.Quantity(mass_total, self.unit["mass"])
+        print "mass_total =", mass_total
 
         mass_central = (
             (r_out**0.5 - r_in**0.5) /
             (r_total**0.5 - r_in**0.5) *
             mass_total
         )
+        print "mass_central =", u.Quantity(mass_central, self.unit["mass"])
         rho_central = (
-            mass_central / (2*np.pi * (r_out**2 - r_in**2) * 2*H)
+            mass_central / (np.pi * (r_out**2 - r_in**2) * np.sqrt(np.pi/2)*H)
         ).to(u.Unit(self.unit["mass"]) / u.Unit(self.unit["distance"])**3).value
-
-        # Simple static alternative:
-        # rho_central = (
-            # mass_total.value / (
-                # np.pi * u.Quantity(50, "AU").to(
-                    # u.Unit(self.unit["distance"])
-                # ).value**2 * 2*self.H
-            # )
-        # )
+        print "rho_central =", u.Quantity(
+            rho_central,
+            u.Unit(self.unit["mass"]) / u.Unit(self.unit["distance"])**3,
+        )
+        rho_central_CGM = (
+            mass_central / (np.pi * (r_out**2 - r_in**2) * np.sqrt(np.pi/2)*H)
+        ).to(u.Unit("g") / u.Unit("cm")**3).value
+        print "rho_central =", u.Quantity(
+            rho_central_CGM,
+            u.Unit("g") / u.Unit("cm")**3,
+        )
 
         # self.data[:, ~0] /= self.data[:, ~0].mean()
             # Normalize before scaling, or not?
@@ -477,7 +485,7 @@ class DensityMap:
                 plt.plot(
                     angles,
                     lightcurve[j],
-                    label="inc=%g" % inclinations[j],
+                    label="inc=%2g" % inclinations[j],
                 )
 
         if show:
