@@ -54,7 +54,8 @@ if __name__ == "__main__":
                 n_angle=int(input_["azimuthsteps"]),
                 n_radius=int(input_["radiussteps"]),
                 unit=input_["unit"]["angle"],
-                show=True,
                 save=True,
+                show=True,
+                normalizations=func.to_list(input_["normalization"]),
                 outfolder=input_["outfolder"],
             )

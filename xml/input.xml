@@ -57,6 +57,12 @@
         several pathnames are provided (separated with spaces) several
         copies will be made.
     -->
+    <!--
+        How to normalize the output data.
+        Options are "mean", "max", "stellar", or any combination of these.
+    -->
+    <normalization>stellar</normalization>
+        <!--Examples:  stellar mean  |  max  |  all -->
     <resave_as></resave_as>
         <!--Examples:  data_0.25_cropped3.0.csv  |  data_0.25_cropped3.0.p -->
     <system>cartesian</system>

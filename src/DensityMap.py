@@ -373,6 +373,8 @@ class DensityMap:
         dr=None,
         save=False,
         show=False,
+        normalizations=["stellar"],
+        short_title=True,
         outfolder=None,
     ):
         """Makes a lightcurve by calling the other methods for each orientation
@@ -434,86 +436,105 @@ class DensityMap:
                     lightcurve[j, i] += sylinder.integrate()
         print "%f / %f" % (theta, theta)
 
-        # Choose normalization method (only hardcoded for now):
-        normalization = "stellar flux"
-        if normalization == "stellar flux":
-            unobscured_intensity = 0.
-            for star in self.stars:
-                unobscured_intensity += star.intensity
-            lightcurve /= unobscured_intensity
-        elif normalization == "max":
-            lightcurve /= lightcurve.max(axis=1)[:, None]
-        elif normalization == "mean":
-            lightcurve /= lightcurve.mean(axis=1)[:, None]
+        if "all" in normalizations:
+            normalizations = ["stellar", "max", "mean"]
 
-        for j, inclination in enumerate(inclinations):
+        for normalization in normalizations:
 
-            starradius = ""
-            starflux = ""
-            for star in self.stars:
-                starradius += "%g-" % star.radius
-                starflux += "%g-" % star.intensity
-            starradius = starradius.rstrip("-")
-            starflux = starflux.rstrip("-")
-            header = (
-                "%s, H=%g, kappa=%g, "
-                "r_star=%s, flux_star=%s, r_in=%g, r_out=%g, dr=%g, "
-                "dtheta=%g%s, inc=%g%s"
-                % ( self.dataname,
-                    H,
-                    self.kappa,
-                    starradius,
-                    starflux,
-                    self.radius_in,
-                    self.radius_out,
-                    (self.radius_out - self.radius_in) / n_radius,
-                    float(theta) / n_angle,
-                    unit,
-                    inclination,
-                    unit,
-                )
-            )
-            if save:
-                outname = (
-                    "%s__H=%g__"
-                    "r_in=%g__r_out=%g__"
-                    "inc=%02g"
-                    % ( self.dataname,
-                        H,
-                        self.radius_in,
-                        self.radius_out,
-                        inclination,
-                    )
-                )
-                if outfolder is None:
-                    outfolder = self.outfolder
-                func.make_folder(outfolder)
-                outfile = open("%s/%s.csv" % (outfolder, outname), "w")
-                outfile.write("#" + header + "\n")
-                for angle, flux in zip(angles, lightcurve[j]):
-                    outfile.write("%f,%f\n" % (angle, flux))
-                outfile.close()
+            if "stellar" in normalization or "unobscured" in normalization:
+                unobscured_flux = 0.
+                for star in self.stars:
+                    unobscured_flux += star.intensity
+                lightcurve /= unobscured_flux
+            elif "max" in normalization:
+                lightcurve /= lightcurve.max(axis=1)[:, None]
+            elif "mean" in normalization:
+                lightcurve /= lightcurve.mean(axis=1)[:, None]
 
             if show:
-                plt.plot(
-                    angles,
-                    lightcurve[j],
-                    label="inc=%2g" % inclinations[j],
+                fig = plt.figure(figsize=(12,6))
+                fig.gca().get_yaxis().get_major_formatter().set_useOffset(False)
+                ax = fig.add_subplot(1,1,1)
+                ax.set_xlim([0, 360])
+
+            for j, inclination in enumerate(inclinations):
+
+                starradius = ""
+                starflux = ""
+                for star in self.stars:
+                    starradius += "%g-" % star.radius
+                    starflux += "%g-" % star.intensity
+                starradius = starradius.rstrip("-")
+                starflux = starflux.rstrip("-")
+                header = (
+                    "%s, H=%g, kappa=%g, "
+                    "r_star=%s, flux_star=%s, r_in=%g, r_out=%g, dr=%g, "
+                    "dtheta=%g%s, inc=%g%s"
+                    % ( self.dataname,
+                        H,
+                        self.kappa,
+                        starradius,
+                        starflux,
+                        self.radius_in,
+                        self.radius_out,
+                        (self.radius_out - self.radius_in) / n_radius,
+                        float(theta) / n_angle,
+                        unit,
+                        inclination,
+                        unit,
+                    )
+                )
+                if save:
+                    outname = (
+                        "%s__H=%g__"
+                        "r_in=%g__r_out=%g__"
+                        "inc=%02g__%snorm"
+                        % ( self.dataname,
+                            H,
+                            self.radius_in,
+                            self.radius_out,
+                            inclination,
+                            normalization,
+                        )
+                    )
+                    if outfolder is None:
+                        outfolder = self.outfolder
+                    func.make_folder(outfolder)
+                    outfile = open("%s/%s.csv" % (outfolder, outname), "w")
+                    outfile.write("#" + header + "\n")
+                    for angle, flux in zip(angles, lightcurve[j]):
+                        outfile.write("%f,%f\n" % (angle, flux))
+                    outfile.close()
+
+                if show:
+                    ax.plot(
+                        angles,
+                        lightcurve[j],
+                        label="%2g" % inclinations[j],
+                    )
+
+            if show:
+                if short_title:
+                    # Only use the name of the data in the title.
+                    ax.set_title(self.dataname)
+                    ax.set_position([0.06, 0.10, 0.84, 0.83])
+                else:
+                    # Use all metadata in the title.
+                    ax.set_title(
+                        "\n".join(textwrap.wrap(header.split(", inc")[0], 70))
+                    )
+                    ax.set_position([0.06, 0.10, 0.84, 0.80])
+                ax.set_xlabel("viewing angle [degree]")
+                ax.set_ylabel("flux [%s flux]" % normalization)
+                ax.legend(
+                    bbox_to_anchor=(1.11, 0.5),
+                    title="inc [deg]=",
+                    loc="right",
+                    borderaxespad=0.,
                 )
 
-        short_title = True
+
         if show:
-            if short_title:
-                # Only use the name of the data in the title.
-                plt.title(self.dataname)
-            else:
-                # Use all metadata in the title.
-                plt.title("\n".join(textwrap.wrap(header.split(", inc")[0], 70)))
-            plt.xlabel("viewing angle [degree]")
-            plt.ylabel("flux [%s]" % normalization)
-            plt.legend(loc="best")
-            plt.gca().get_yaxis().get_major_formatter().set_useOffset(False)
-            plt.tight_layout()
             plt.show()
 
 
