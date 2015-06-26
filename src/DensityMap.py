@@ -52,7 +52,10 @@ class DensityMap:
             self.dataname = filename.split("/")[~0]
         else:
             self.dataname = dataname
-        print "Loading dataset '%s' \nfrom file '%s'..." % dataname, filename
+        print (
+            "Loading dataset '%s' from file '%s'..."
+            % (self.dataname, filename)
+        )
         self.outfolder = outfolder
         self.unit = unit
         self.stars = []
@@ -519,13 +522,13 @@ class DensityMap:
                 if short_title:
                     # Only use the name of the data in the title.
                     ax.set_title(self.dataname)
-                    ax.set_position([0.06, 0.10, 0.84, 0.83])
+                    ax.set_position([0.10, 0.10, 0.80, 0.83])
                 else:
                     # Use all metadata in the title.
                     ax.set_title(
                         "\n".join(textwrap.wrap(header.split(", inc")[0], 70))
                     )
-                    ax.set_position([0.06, 0.10, 0.84, 0.80])
+                    ax.set_position([0.10, 0.10, 0.80, 0.80])
                 ax.set_xlabel("viewing angle [degree]")
                 ax.set_ylabel("flux [%s flux]" % normalization)
                 ax.legend(
