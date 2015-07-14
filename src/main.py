@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import xmltodict
 
@@ -8,8 +9,41 @@ import Functions as func
 
 if __name__ == "__main__":
 
-    infile = open("input.xml", "r")
-    input_ = xmltodict.parse(infile)["input"]
+    # Attempt to read input file and tell the user if the input is wrong:
+    try:
+        infile = open(sys.argv[1], "r")
+    except IndexError:
+        print (
+            "usage: python %s input_file.xml\n"
+            "  Specify the (path)name of an input xml file. "
+            % sys.argv[0]
+        )
+        sys.exit(1)
+    except IOError:
+        print "No such file: '%s'" % sys.argv[1]
+        print (
+            "usage: python %s input_file.xml\n"
+            "  Specify the (path)name of an input xml file. "
+            % sys.argv[0]
+        )
+        if sys.argv[1] in (
+            "help", "Help", "-h", "-H", "--help", "man", "manual"
+        ):
+            print (
+                "  See the manual for details on how to use cirbindis:\n"
+                "  https://bytebucket.org/paulmag/circumbinarydisk/raw/"
+                "3945ccbba15ae5fcac439cd5d71dce07b6e35796/report/main.pdf"
+            )
+        sys.exit(1)
+    try:
+        input_ = xmltodict.parse(infile)["input"]
+    except Exception:
+        print (
+            "usage: python %s input_file.xml\n"
+            "  Specify the (path)name of an input xml file. "
+            % sys.argv[0]
+        )
+        raise
     infile.close()
 
 
@@ -49,16 +83,7 @@ if __name__ == "__main__":
 
             dataset.set_physical_units()
 
-            print
-            print
-            print input_["star"]
-            print
-            print
-            print func.to_list(input_["star"])
-            print
             for star in func.to_list(input_["star"]):
-                print
-                print star
                 dataset.add_star(star)
 
             dataset.make_lightcurve(
