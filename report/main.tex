@@ -280,10 +280,16 @@ How to make necessary configurations and then run \sname to perform an analysis.
 This is the most practical and maybe the most important section, as it explains how to actually use the software.
 
 \subsection{Input parameters}
-    The input parameters for each run of \sname is configured in an XML file. Inside the repository you will find \texttt{/xml/input.xml}. Copy this file to the path where you will run \sname from (normally the folder where the input datafile is) and change the value of the fields as required (it must still be called \texttt{input.xml}). Specifically, this is where you provide the filename of the dataset to analyse (if \texttt{input.xml} is in another folder than the input datafile you need to provide the relative path).
+    The input parameters for each run of \sname is configured in an XML file with a predetermined layout.
+    Inside the repository you will find \texttt{/xml/input.xml}. Copy this file, save it together with your dataset, and modify the values of the fields as required for your dataset (do not blindly use the default values).
+
+    Specifically, this is where you provide the filename of the dataset to analyse.
+    If \texttt{input.xml} is in another folder than the dataset you need to write the relative or absolute pathname of the datafile.
+
+    You can save your copy of the XML-file with whatever name you wish, which can be useful to link separate XML-files to specific datasets that are in the same folder, or if you have diffenert sets of parameters that you want to reuse on the same dataset.
 
     %TODO
-    \textbf{TODO}: Here I plan to more or less copy the explanations that are in \texttt{input.xml} already.
+    \textbf{TODO}: Here I plan to more or less copy the explanations that are in \texttt{xml/input.xml} already.
 
     \begin{description}
         \item[unit-mass] Dorem
@@ -292,9 +298,15 @@ This is the most practical and maybe the most important section, as it explains 
     \end{description}
 
 \subsection{Executing the code}
-    When you have prepared \texttt{input.xml} and you are located in it's folder, type the command \texttt{cirbindis} \\
-    (or \texttt{python \textasciitilde/path\_to\_repository\_folder/circumbinarydisk/src/main.py}).
-    Then the software will run until it has completed the analysis of your datafile with all the parameters you specified.
+    When you have prepared your input XML-file with your dataset, type the command \texttt{cirbindis} \\
+    (or \texttt{python \textasciitilde/path\_to\_repository\_folder/circumbinarydisk/src/main.py input.xml})
+    followed by the name of your XML-file in a terminal.
+    F.ex.: \\
+    \texttt{cirbindis input.xml} \\
+    \texttt{cirbindis dataA.xml} \\
+    \texttt{cirbindis dataA\_big.xml} \\
+    \texttt{cirbindis data/set1.xml} \\
+    The software will run until it has completed the analysis of your dataset with the parameters you specified, or stop and throw an error message if there is a problem with the configuration.
 
 \subsection{Output}
     The output after a \sname analysis is a comma-separated-value (csv) file. The output file will be placed in the path you specified in \texttt{input.xml}. The filename contains the value of the parameters $H$, $r_{in}$, $r_{out}$, and inclination ($\phi$), separated by double underscores ``\_\_''. A filename can be f.ex.
@@ -315,6 +327,18 @@ dtheta=45deg, inc=5deg
 315.000000,0.000000
 \end{verbatim*}
 
+
+
+%===============================================================================
+\section{Troubleshooting}
+%-------------------------------------------------------------------------------
+
+\subsection{Some curves are missing in the plot}
+
+\subsection{Contact the author}
+    If you cannot find out how to do something and this manual does not explain it,
+    send an email to \href{mailto:paulmag91@gmail.com}{paulmag91@gmail.com} to ask and ask.
+    Do this also if you have suggestions for improvements, as \sname is under development.
 
 
 %===============================================================================
