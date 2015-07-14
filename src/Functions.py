@@ -21,6 +21,8 @@ def to_list(x, dtype=None, separator=" "):
 
     if isinstance(x, basestring):  # If x is a string.
         x = np.array(x.split(separator), dtype=dtype)
+    elif isinstance(x, dict):  # If x is a dictionairy.
+        x = np.array([x], dtype=dtype)
     else:
         try:
             iter(x)  # If x is a sequence.
