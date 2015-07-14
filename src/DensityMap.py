@@ -9,6 +9,8 @@ import cPickle as pickle
     # faster than reading and writing ASCII tables.
 import time
     # Used to time parts of code to look for bottlenecks.
+import re
+    # Regular expressions for data reading.
 import matplotlib.pyplot as plt
 from matplotlib import ticker
     # For plotting results.
@@ -99,7 +101,6 @@ class DensityMap:
     def load(self,
         filename,
         method=None,
-        separator=" ",
     ):
         """Load a dataset to analyse from a file.
 
@@ -113,9 +114,6 @@ class DensityMap:
         method: (string) What kind of loading algorithm to use. Can be
             'ascii' or 'pickle', If none is given, will try to automatically
             find out by looking at file ending.
-        separator: (string) If method='ascii' this is the separator
-            between the values each line. Usually a space or comma. Ignored if
-            method='pickle'.
         """
 
         t_start = time.time()
@@ -139,7 +137,8 @@ class DensityMap:
         elif method == "ascii":
             data = []
             for line in infile:
-                line = line.rstrip().split(separator)
+                line = re.split("[, ]+", line.strip())
+                    # Split on comma/space and strip spaces/newline.
                 if len(line) >= 3:
                     line = [float(value) for value in line]
                     if (self.radius_in <=
