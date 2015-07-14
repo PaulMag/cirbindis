@@ -64,9 +64,11 @@ class DensityMap:
         self.stars = []
         self.radius_in = radius_in
         self.radius_out = radius_out
+        self.diskmass = diskmass
+        self.diskradius = diskradius
         self.H = H
         self.kappa = kappa  # [cm^2 / g]
-            # Between 5 and 100 according to Boubier et al. 1999.
+            # Between 5 and 100 according to Bouvier et al. 1999.
 
         if data is not None:
             self.data = data
@@ -80,8 +82,6 @@ class DensityMap:
             self.data[:, 0], self.data[:, 1] = x, y
         else:
             raise KeyError("Coordinate system must be 'cartesian' or 'polar'.")
-
-        self.set_physical_units(diskmass, diskradius)
 
 
     def add_star(self, d=None, position=None, radius=None, intensity=None):
@@ -153,10 +153,15 @@ class DensityMap:
         print "Loading took %f seconds." % (t_end - t_start)
 
 
-    def set_physical_units(self, mass_total, r_total):
+    def set_physical_units(self, mass_total=None, r_total=None):
         """Convert density to physical units related to the total mass and
         size of the disk.
         """
+
+        if mass_total is None:
+            mass_total = self.diskmass
+        if r_total is None:
+            r_total = self.diskradius
 
         r_in = u.Quantity(self.radius_in, self.unit["distance"])
         print "r_in =", r_in
@@ -192,7 +197,9 @@ class DensityMap:
 
         # self.data[:, ~0] /= self.data[:, ~0].mean()
             # Normalize before scaling, or not?
+        print "Mean BEFORE:", self.data.mean()
         self.data[:, ~0] *= rho_central
+        print "Mean AFTER: ", self.data.mean()
 
 
     def writeto(self, filename, method=None, separator=" "):

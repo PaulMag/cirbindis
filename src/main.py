@@ -47,7 +47,18 @@ if __name__ == "__main__":
                     continue
                 dataset.writeto(filename)
 
+            dataset.set_physical_units()
+
+            print
+            print
+            print input_["star"]
+            print
+            print
+            print func.to_list(input_["star"])
+            print
             for star in func.to_list(input_["star"]):
+                print
+                print star
                 dataset.add_star(star)
 
             dataset.make_lightcurve(
