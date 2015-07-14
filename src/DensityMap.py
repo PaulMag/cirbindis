@@ -10,6 +10,7 @@ import cPickle as pickle
 import time
     # Used to time parts of code to look for bottlenecks.
 import matplotlib.pyplot as plt
+from matplotlib import ticker
     # For plotting results.
 from scipy import integrate
 from scipy import special
@@ -459,8 +460,45 @@ class DensityMap:
             if show or savefig:
                 fig = plt.figure(figsize=(12,6))
                 fig.gca().get_yaxis().get_major_formatter().set_useOffset(False)
+                    # Always use absolute labels and not offsets.
+                plt.minorticks_on()  # Turn default minorticks on for y-axis.
                 ax = fig.add_subplot(1,1,1)
                 ax.set_xlim([0, 360])
+                ax.set_xticks(range(0, 360+1, 30))
+                ax.xaxis.set_minor_locator(ticker.AutoMinorLocator(3))
+                    # A major tick every 30 deg and minor tick every 10 deg.
+
+                # Set a specific tick step (hardcoded switch):
+                if False:
+                    step = 0.000001
+                    stepmin = lightcurve.min()
+                    stepmax = lightcurve.max()
+                    stepdiff = stepmax - stepmin
+                    stepmin -= stepdiff  # Increase the range of the ticks just
+                    stepmax += stepdiff  # to be sure.
+                    stepmin = step * round(stepmin / step)  # Round off to the
+                    stepmax = step * round(stepmax / step)  # nearest step.
+                    ax.set_yticks(np.linspace(
+                        stepmin,
+                        stepmax,
+                        int(round((stepmax - stepmin) / step)) + 1,
+                    ))
+                    # Set a specific label step (hardcoded switch):
+                    if True:
+                        # Automatic minor ticks between steps.
+                        ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(5))
+                    elif True:
+                        # Manual label removal of certain steps.
+                        steplabel = 2 * step
+                        ylabels = []
+                        for ytick in ax.get_yticks():
+                            if (int(round(ytick/step)) %
+                                int(round(steplabel/step)) == 0
+                            ):
+                                ylabels.append(ytick)
+                            else:
+                                ylabels.append("")
+                        ax.set_yticklabels(ylabels)
 
             for j, inclination in enumerate(inclinations):
 
