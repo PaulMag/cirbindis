@@ -195,11 +195,9 @@ class DensityMap:
             u.Unit("g") / u.Unit("cm")**3,
         )
 
-        # self.data[:, ~0] /= self.data[:, ~0].mean()
-            # Normalize before scaling, or not?
-        print "Mean BEFORE:", self.data.mean()
+        self.data[:, ~0] /= self.data[:, ~0].mean()
+            # Normalize before scaling, or not? Yes.
         self.data[:, ~0] *= rho_central
-        print "Mean AFTER: ", self.data.mean()
 
 
     def writeto(self, filename, method=None, separator=" "):
