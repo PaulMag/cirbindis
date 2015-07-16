@@ -457,9 +457,15 @@ class DensityMap:
                     unobscured_flux += star.intensity
                 lightcurve /= unobscured_flux
             elif "max" in normalization:
-                lightcurve /= lightcurve.max(axis=1)[:, None]
+                for j, maxflux in enumerate(lightcurve.max(axis=1)):
+                    if maxflux > 0:
+                        lightcurve[j] /= maxflux
+                    # else lightcurve[j] is all zeros, so avoid dividing by 0
             elif "mean" in normalization:
-                lightcurve /= lightcurve.mean(axis=1)[:, None]
+                for j, maxflux in enumerate(lightcurve.max(axis=1)):
+                    if maxflux > 0:
+                        lightcurve[j] /= maxflux
+                    # else lightcurve[j] is all zeros, so avoid dividing by 0
 
             if show or savefig:
                 fig = plt.figure(figsize=(12,6))
