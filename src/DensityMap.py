@@ -480,7 +480,7 @@ class DensityMap:
 
                 # Set a specific tick step (hardcoded switch):
                 if False:
-                    step = 0.000001
+                    step = 0.1
                     stepmin = lightcurve.min()
                     stepmax = lightcurve.max()
                     stepdiff = stepmax - stepmin
@@ -688,8 +688,6 @@ class Sylinder(DensityMap):
 
         data = self.data[np.argsort(self.data[:, 0])]
 
-        g = np.sqrt(2) * H  # Constant used several times in calculations.
-
         for i in xrange(n_steps):
             start = i*dpoints
             if i == n_steps-1:
@@ -712,6 +710,14 @@ class Sylinder(DensityMap):
             )
             z1 = z - W
             z2 = z + W
+            # Constant g used several times in calculations:
+            if False:
+                # H(r) depending on distance from origo:
+                g = np.sqrt(2) * H * \
+                    (self.radius_in + np.sum(drs[:i]) + drs[i]/2.)
+            else:
+                # Constant H:
+                g = np.sqrt(2) * H
             densities[i] = (
                 np.sum(
                     # \int_z1^z2 \rho_0 * e^{- z^2 / (2*H^2)} dz
