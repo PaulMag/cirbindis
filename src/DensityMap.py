@@ -637,7 +637,7 @@ class Sylinder(DensityMap):
 
 
     def space_sylinder(self,
-        inclination=0,
+        inclination=90.0,
         unit="deg",
         H=1.,
         n_steps=None,
@@ -677,6 +677,9 @@ class Sylinder(DensityMap):
         elif unit == "arcsec":
             factor = np.pi / 180. * 3600
         inclination *= factor
+        inclination = np.pi/2 - inclination
+            # Convert from standard inclination definition to what is used
+            # in these calculations.
 
         if n_steps is None:
             n_steps = int(round((self.radius_out - self.radius_in) / dr))
