@@ -688,6 +688,7 @@ class Sylinder(DensityMap):
 
         densities = np.zeros(n_steps)
         drs = np.zeros(n_steps)
+        radiuses = np.zeros(n_steps)
 
         data = self.data[np.argsort(self.data[:, 0])]
 
@@ -713,14 +714,12 @@ class Sylinder(DensityMap):
             )
             z1 = z - W
             z2 = z + W
+            radiuses[i] = self.radius_in + np.sum(drs[:i]) + drs[i]/2.
             # Constant g used several times in calculations:
             if False:
-                # H(r) depending on distance from origo:
-                g = np.sqrt(2) * H * \
-                    (self.radius_in + np.sum(drs[:i]) + drs[i]/2.)
+                g = np.sqrt(2) * H * radiuses[i]  # H(r) depending on radius.
             else:
-                # Constant H:
-                g = np.sqrt(2) * H
+                g = np.sqrt(2) * H  # Constant H.
             densities[i] = (
                 np.sum(
                     # \int_z1^z2 \rho_0 * e^{- z^2 / (2*H^2)} dz
@@ -731,6 +730,7 @@ class Sylinder(DensityMap):
 
         self.densities = densities
         self.drs = drs
+        self.radiuses = radiuses
 
 
     def integrate(self):
