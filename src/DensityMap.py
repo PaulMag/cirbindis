@@ -152,6 +152,10 @@ class DensityMap:
         t_end = time.time()  # End of timer.
         print "Loading took %f seconds." % (t_end - t_start)
 
+        # Set a finite radius_out if there was no limit:
+        if np.isinf(self.radius_out):
+            self.radius_out = np.linalg.norm(self.data[:, 0:2], axis=1).max()
+
 
     def set_physical_units(self, mass_total=None, r_total=None):
         """Convert density to physical units related to the total mass and

@@ -60,6 +60,9 @@ if __name__ == "__main__":
 
         for radius_out in func.to_list(input_["radius_out"], float):
 
+            if radius_out is None or np.isnan(radius_out):
+                radius_out = np.inf
+
             dataset = DensityMap(
                 filename=input_["datafile"],
                 dataname=input_["dataname"],
