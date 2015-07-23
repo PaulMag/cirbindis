@@ -275,10 +275,10 @@ class DensityMap:
             factor = np.pi / 180. * 60
         elif unit == "arcsec":
             factor = np.pi / 180. * 3600
-        angle_z *= - factor
-            # Multiply by negative factor so that the disk is rotated
-            # clockwise. Then the line of sight (observer) is rotated
-            # counter-clockwise.
+        angle_z *= + factor
+            # Multiply by positive factor so that the disk is rotated
+            # counter-clockwise. Then the line of sight (observer) is rotated
+            # clockwise.
 
         # Make rotation matrix:
         rotation_matrix = np.matrix([
@@ -427,7 +427,7 @@ class DensityMap:
 
         # Density profile:
         fig_dprof = plt.figure(figsize=(12,6))
-        fig_dprof.suptitle("%s, sylinder density profiles" % self.dataname)
+        fig_dprof.suptitle("%s" % self.dataname)
         axes_dprof = []
         nplots = [
             int(round(np.sqrt(len(inclinations)))),  # No of columns.
