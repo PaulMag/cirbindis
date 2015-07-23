@@ -383,6 +383,7 @@ class DensityMap:
         save=False,
         savefig=False,
         show=False,
+        use_dprof=False,
         normalizations=["stellar"],
         short_title=True,
         outfolder=None,
@@ -420,8 +421,14 @@ class DensityMap:
         angles = np.linspace(0, theta-dtheta, n_angle)
         lightcurve = np.zeros((len(inclinations), n_angle))
 
+        # Density profile:
+        fig_dprof = plt.figure(figsize=(12,6))
+        fig_dprof.suptitle("%s, sylinder density profiles" % self.dataname)
+        axes_dprof = []
+        dprof_nplots = [int(round(np.sqrt(n_angle))), int(np.sqrt(n_angle))]
+
         for i, angle in enumerate(angles):
-            print "%f / %f" % (angle, theta)
+            print "%6.2f / %g" % (angle, theta)
             self.rotate(
                 angle_z=angle,
                 unit=unit,
@@ -444,7 +451,39 @@ class DensityMap:
                         dr=dr,
                     )
                     lightcurve[j, i] += sylinder.integrate()
-        print "%f / %f" % (theta, theta)
+
+                    # Density profile:
+                    if k == 0:  # Only do for primary star:
+                        if i == 0:  # Only initialize axes once:
+                            axes_dprof.append(fig_dprof.add_subplot(
+                                dprof_nplots[0],
+                                dprof_nplots[1],
+                                j+1,
+                            ))
+                        axes_dprof[j].plot(
+                            sylinder.radiuses,
+                            sylinder.densities,
+                            label="%3g" % angle,
+                        )
+                        axes_dprof[j].set_title("inc=%2g" % inclination)
+
+        # Density profile:
+        for j in range(n_angle):  # All subplots.
+            axes_dprof[j].set_xlim([0, self.radius_out])
+            axes_dprof[j].yaxis.set_major_formatter( \
+                ticker.FormatStrFormatter('%.1e'))
+        for j in range(dprof_nplots[0]):  # Bottom row.
+            axes_dprof[~j].set_xlabel("radius [a]")
+        for j in range(n_angle - dprof_nplots[0]):  # All except bottom row.
+            axes_dprof[j].set_xticklabels([])
+        for j in range(0, n_angle, dprof_nplots[0]):  # Left coumn.
+            axes_dprof[j].set_ylabel("density [solMass/a^3]")
+        axes_dprof[dprof_nplots[0]-1].legend(  # Only top right.
+            title="angle [deg]=",
+            loc="best",
+        )
+
+        print "%6.2f / %g" % (theta, theta)
 
         if "all" in normalizations:
             normalizations = ["stellar", "max", "mean"]
@@ -590,18 +629,22 @@ class DensityMap:
                 outname = (
                     "%s__H=%g__"
                     "r_in=%g__r_out=%g__"
-                    "%snorm"
                     % ( self.dataname,
                         H,
                         self.radius_in,
                         self.radius_out,
-                        normalization,
                     )
                 )
                 if outfolder is None:
                     outfolder = self.outfolder
                 func.make_folder(outfolder)
-                fig.savefig("%s/%s.png" % (outfolder, outname))
+                fig.savefig("%s/%s%snorm.png" \
+                    % (outfolder, outname, normalization))
+                # Density profile:
+                if use_dprof:
+                    outname.rstrip()
+                    fig_dprof.savefig("%s/%sdprofiles.png" \
+                        % (outfolder, outname))
 
         if show:
             plt.show()
