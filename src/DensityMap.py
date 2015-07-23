@@ -383,6 +383,7 @@ class DensityMap:
         save=False,
         savefig=False,
         show=False,
+        use_dprof=False,
         normalizations=["stellar"],
         short_title=True,
         outfolder=None,
@@ -420,8 +421,18 @@ class DensityMap:
         angles = np.linspace(0, theta-dtheta, n_angle)
         lightcurve = np.zeros((len(inclinations), n_angle))
 
+        # Density profile:
+        fig_dprof = plt.figure(figsize=(12,6))
+        fig_dprof.suptitle("%s, sylinder density profiles" % self.dataname)
+        axes_dprof = []
+        nplots = [
+            int(round(np.sqrt(len(inclinations)))),  # No of columns.
+            int(np.ceil(np.sqrt(len(inclinations)))),  # No of rows.
+            len(inclinations),  # Total no of density profile plots.
+        ]
+
         for i, angle in enumerate(angles):
-            print "%f / %f" % (angle, theta)
+            print "%6.2f / %g" % (angle, theta)
             self.rotate(
                 angle_z=angle,
                 unit=unit,
@@ -444,7 +455,39 @@ class DensityMap:
                         dr=dr,
                     )
                     lightcurve[j, i] += sylinder.integrate()
-        print "%f / %f" % (theta, theta)
+
+                    # Density profile:
+                    if k == 0:  # Only do for first star:
+                        if i == 0:  # Only initialize axes once:
+                            axes_dprof.append(fig_dprof.add_subplot(
+                                nplots[1],
+                                nplots[0],
+                                j+1,
+                            ))
+                        axes_dprof[j].plot(
+                            sylinder.radiuses,
+                            sylinder.densities,
+                            label="%3g" % angle,
+                        )
+                        axes_dprof[j].set_title("inc=%2g" % inclination)
+
+        # Density profile:
+        for j in range(nplots[2]):  # All subplots.
+            axes_dprof[j].set_xlim([0, self.radius_out])
+            axes_dprof[j].yaxis.set_major_formatter( \
+                ticker.FormatStrFormatter('%.1e'))
+        for j in range(nplots[0]):  # Bottom row.
+            axes_dprof[~j].set_xlabel("radius [a]")
+        for j in range(nplots[2] - nplots[0]):  # All except bottom row.
+            axes_dprof[j].set_xticklabels([])
+        for j in range(0, nplots[2], nplots[0]):  # Left coumn.
+            axes_dprof[j].set_ylabel("density [solMass/a^3]")
+        axes_dprof[nplots[0]-1].legend(  # Only top right.
+            title="angle [deg]=",
+            loc="best",
+        )
+
+        print "%6.2f / %g" % (theta, theta)
 
         if "all" in normalizations:
             normalizations = ["stellar", "max", "mean"]
@@ -590,21 +633,29 @@ class DensityMap:
                 outname = (
                     "%s__H=%g__"
                     "r_in=%g__r_out=%g__"
-                    "%snorm"
                     % ( self.dataname,
                         H,
                         self.radius_in,
                         self.radius_out,
-                        normalization,
                     )
                 )
                 if outfolder is None:
                     outfolder = self.outfolder
                 func.make_folder(outfolder)
-                fig.savefig("%s/%s.png" % (outfolder, outname))
+                fig.savefig("%s/%s%snorm.png" \
+                    % (outfolder, outname, normalization))
+                # Density profile:
+                if use_dprof:
+                    outname.rstrip()
+                    fig_dprof.savefig("%s/%sdprofiles.png" \
+                        % (outfolder, outname))
 
         if show:
-            plt.show()
+            raw_input("Press <enter> to view the plots: ")
+            fig.show()
+            if use_dprof:
+                fig_dprof.show()
+            raw_input("Press <enter> to close plots and exit: ")
 
 
 
@@ -688,6 +739,7 @@ class Sylinder(DensityMap):
 
         densities = np.zeros(n_steps)
         drs = np.zeros(n_steps)
+        radiuses = np.zeros(n_steps)
 
         data = self.data[np.argsort(self.data[:, 0])]
 
@@ -713,14 +765,12 @@ class Sylinder(DensityMap):
             )
             z1 = z - W
             z2 = z + W
+            radiuses[i] = self.radius_in + np.sum(drs[:i]) + drs[i]/2.
             # Constant g used several times in calculations:
             if False:
-                # H(r) depending on distance from origo:
-                g = np.sqrt(2) * H * \
-                    (self.radius_in + np.sum(drs[:i]) + drs[i]/2.)
+                g = np.sqrt(2) * H * radiuses[i]  # H(r) depending on radius.
             else:
-                # Constant H:
-                g = np.sqrt(2) * H
+                g = np.sqrt(2) * H  # Constant H.
             densities[i] = (
                 np.sum(
                     # \int_z1^z2 \rho_0 * e^{- z^2 / (2*H^2)} dz
@@ -731,6 +781,7 @@ class Sylinder(DensityMap):
 
         self.densities = densities
         self.drs = drs
+        self.radiuses = radiuses
 
 
     def integrate(self):
