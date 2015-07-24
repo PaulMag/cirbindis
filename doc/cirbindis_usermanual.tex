@@ -122,6 +122,8 @@ This manual explains certain procedures with bash-commands, which exists in Linu
 
 
 \subsection{Downloading and updating}
+    \label{sec:downloading}
+
     The source code is available at this GitHub repository: \\
     \url{https://github.com/PaulMag/cirbindis} \\
     The updated version of this manual is contained within the repository, so make sure to always consult the newest version after installing/updating \sname. 
@@ -384,55 +386,52 @@ dtheta=45deg, inc=5deg
 \section{Troubleshooting}
 %-------------------------------------------------------------------------------
 
-\subsection{Some curves are missing in the plot}
-
 \subsection{Contact the author}
     If you cannot find out how to do something and this manual does not explain it,
-    send an email to \href{mailto:paulmag91@gmail.com}{paulmag91@gmail.com} to ask and ask.
-    Do this also if you have suggestions for improvements, as \sname is under development.
+    send an email to \href{mailto:paulmag91@gmail.com}{paulmag91@gmail.com} and ask.
+    Do this also if you have feedback or suggestions for improvements, as \sname is under development.
 
 
 %===============================================================================
-\section{Bibliography}
+% \section{Bibliography}
 %-------------------------------------------------------------------------------
+%TODO Do we need this section?
 
 
 %===============================================================================
 \section{Acknowledgments}
 %-------------------------------------------------------------------------------
+TODO
 
 
 %===============================================================================
-\section{Source code}
+\section{Source code summary}
 %-------------------------------------------------------------------------------
+
+Here is a summary of what the individual files of \sname does.
+The full source code is available at \url{https://github.com/PaulMag/cirbindis} as explained in section \vref{sec:downloading}.
 
 \subsection{\texttt{input.xml}}
     The file for the user to provide input parameters to \sname. You can copy and modify it. It is not a part of the source code itself.
-    \lstinputlisting[language=XML]{../xml/input.xml}
 
-\subsection{\texttt{main.py}}
+\subsection{\texttt{cirbindis.py}}
+    The main file.
     The script that is called when running \sname.
-    \lstinputlisting[language=Python]{../src/cirbindis.py}
 
 \subsection{\texttt{DensityMap.py}}
     Contains the class \texttt{DensityMap} for making an instance of a dataset representing a circumbinary disk. It contains most methods that can be performed on the data. Also contains a subclass \texttt{Sylinder}. Sylinders a sub-sets of a full dataset.
-    \lstinputlisting[language=Python]{../src/DensityMap.py}
 
 \subsection{\texttt{Star.py}}
     The simple \texttt{Star} class whose intention is to hold the physical parameters of each star.
-    \lstinputlisting[language=Python]{../src/Star.py}
 
 \subsection{\texttt{Functions.py}}
     A file containing some general functions that are used other places in the program.
-    \lstinputlisting[language=Python]{../src/Functions.py}
 
 \subsection{\texttt{plot.py}}
-    A standalone script that can be used to plot the output of \sname. You can just as well use f.ex. TOPCAT.
-    \lstinputlisting[language=Python]{../src/plot.py}
+    A standalone script that can be used to plot the output of \sname. You can just as well use something else, f.ex. TOPCAT. This script may be outdated.
 
 \subsection{\texttt{make\_testdata.py}}
     A standalone script that can be used to generate artificial datasets that can be analysed by \sname. You can use it for testing and for generating data according to any analytical function that you would like to analyse (then you need to change the function \texttt{density}).
-    \lstinputlisting[language=Python]{../src/make_testdata.py}
 
 
 \end{document}
