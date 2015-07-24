@@ -35,7 +35,7 @@ if __name__ == "__main__":
                 "  See the usermanual for details on how to use cirbindis:\n"
                 "  /doc/cirbindis_usermanual.pdf\n"
                 "  or\n"
-                "  https://bitbucket.org/paulmag/circumbinarydisk"
+                "  https://github.com/PaulMag/cirbindis"
             )
         sys.exit(1)
     try:
