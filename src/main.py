@@ -30,9 +30,10 @@ if __name__ == "__main__":
             "help", "Help", "-h", "-H", "--help", "man", "manual"
         ):
             print (
-                "  See the manual for details on how to use cirbindis:\n"
-                "  https://bytebucket.org/paulmag/circumbinarydisk/raw/"
-                "3945ccbba15ae5fcac439cd5d71dce07b6e35796/report/main.pdf"
+                "  See the usermanual for details on how to use cirbindis:\n"
+                "  /doc/cirbindis_usermanual.pdf\n"
+                "  or\n"
+                "  https://bitbucket.org/paulmag/circumbinarydisk"
             )
         sys.exit(1)
     try:
