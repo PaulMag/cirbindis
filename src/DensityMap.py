@@ -490,7 +490,10 @@ class DensityMap:
             radius_max = self.radius_out
         for j in range(nplots[2]):  # All subplots.
             axes_dprof[j].set_xlim([self.radius_in, radius_max])
-            axes_dprof[j].set_yscale("log")
+            try:
+                axes_dprof[j].set_yscale("log")  # Does not work if all zeros.
+            except:
+                pass
             axes_dprof[j].yaxis.set_major_formatter( \
                 ticker.FormatStrFormatter('%.1e'))
         for j in range(nplots[0]):  # Bottom row.
@@ -613,7 +616,9 @@ class DensityMap:
                     if outfolder is None:
                         outfolder = self.outfolder
                     func.make_folder(outfolder)
-                    outfile = open("%s/%s.csv" % (outfolder, outname), "w")
+                    func.make_folder(outfolder + "/csvtables")
+                    outfile = open("%s/csvtables/%s.csv" \
+                        % (outfolder, outname), "w")
                     outfile.write("#" + header + "\n")
                     for angle, flux in zip(angles, lightcurve[j]):
                         outfile.write("%f,%f\n" % (angle, flux))
@@ -659,11 +664,12 @@ class DensityMap:
                 if outfolder is None:
                     outfolder = self.outfolder
                 func.make_folder(outfolder)
-                fig.savefig("%s/%s%snorm.png" \
+                func.make_folder(outfolder + "/plots")
+                fig.savefig("%s/plots/%s%snorm.png" \
                     % (outfolder, outname, normalization))
                 # Density profile:
                 if use_dprof:
-                    fig_dprof.savefig("%s/%sdprofiles.png" \
+                    fig_dprof.savefig("%s/plots/%sdprofiles.png" \
                         % (outfolder, outname))
 
         if show:
