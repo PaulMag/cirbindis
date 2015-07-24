@@ -84,22 +84,64 @@ Jerome Bouvier:
 
 A small piece of software for receiving an artificial light curve from a simulated density map of a gas disk around a binary star.
 
-This explains certain procedures with bash-commands, which exists in Linux/UNIX and Apple OS. \sname should work in Windows as well, but some bash-commads may be different.
+This manual explains certain procedures with bash-commands, which exists in Linux/UNIX-based systems (including Apple OS). \sname should work in Windows as well, but some bash-commads may be different.
 
 
 %===============================================================================
 \section{Installing}
 %-------------------------------------------------------------------------------
 
-\subsection{Downloading}
+\subsection{Software requirements}
+    You need the current software installed before you can use \sname. 
+    If you are using Linux/UNIX most likely you have all of these installed already, except maybe \texttt{Astropy}. 
+    The version numbers is what is \emph{known} to work from testing, but some older (and newer) versions will probably also work. If you get an error when using \sname and you have an older version of any of these prerequisites, try updating them before you do any other troubleshooting. 
+    \begin{itemize}
+        \item \texttt{Python} ($3 >$ version $\geq 2.7.9$)
+        \item \texttt{NumPy} ($2 >$ version $\geq 1.9.2$)
+        \item \texttt{SciPy} ($0.16 >$ version $\geq 0.15.1$)
+        \item \texttt{Matplotlib} ($2 >$ version $\geq 1.4.3$)
+        \item \texttt{AstroPy} ($1.1 >$ version $\geq 1.0.2$)
+    \end{itemize}
+
+    \subsubsection{Installing \texttt{AstroPy}}
+        \paragraph{Alternative 1:}
+        I recommend using the Anaconda Python distribution. It installs the latest version of Python including very many libraries (all the ones you need for \sname). It is also easier to install new libraries and update existing ones with Anaconda. 
+        Get Anaconda here: \url{http://continuum.io/downloads}
+
+        \paragraph{Alternative 2:}
+        If you want a more quick and easy approach just type this in a terminal to get \texttt{AstroPy} immediately: \\
+        \texttt{> pip install astropy}
+
+        \paragraph{Alternative 3:}
+        If that does not work, then download the latest version from from \url{https://pypi.python.org/pypi/astropy/}, unpack it, and run this inside the unpacked folder: \\
+        \texttt{> python setup.py install}
+
+        \paragraph{Alternative 4:}
+        You can also consult the \texttt{AstroPy} website: 
+        \url{http://www.astropy.org/}
+
+
+\subsection{Downloading and updating}
     The source code is available at this Bitbucket repository: \\
     \url{https://bitbucket.org/paulmag/circumbinarydisk} \\
-    Provided that Git is installed on you computer you can easily get all the files by running the following command inside the folder where you want the repository: \\
-    \texttt{git clone https://paulmag@bitbucket.org/paulmag/circumbinarydisk.git} \\
-    This link will be updated if the location of the repository or the installation process in any other way changes (note that at this moment the repository is private).
-    Should it not work then contact the authors via email.
+    The updated version of this manual is contained within the repository, so make sure to always consult the newest version after installing/updating \sname. 
 
-\subsection{Alias}
+    \paragraph{Alternative 1:}
+    Provided that Git is installed on you computer (\url{https://git-scm.com}) you can easily get all the source files by running the following command at the location where you want the repository (recommended): \\
+    \texttt{> git clone https://paulmag@bitbucket.org/paulmag/circumbinarydisk.git}
+    
+    To update \sname type this inside the repository folder: \\
+    \texttt{> git pull origin develop}
+
+    \paragraph{Alternative 2:}
+    You can download the source files as a zip-archive from here: \\
+    \url{https://bitbucket.org/paulmag/circumbinarydisk/downloads} \\
+    Click ``Download repository'', unpack the archive, and place it wherever you want.
+
+    To update \sname you have to download the zip-archive again and replace all the old files with the new ones. In other words, make a fresh install.
+
+
+\subsection{Make an alias}
     We recommended to make the alias ``\texttt{cirbindis}'' for the command \\
     \texttt{python \textasciitilde/path\_to\_repository\_folder/circumbinarydisk/src/main.py}. \\
     F. ex. place this in your \texttt{.bashrc} or \texttt{.bash\_aliases}: \\
@@ -111,16 +153,16 @@ This explains certain procedures with bash-commands, which exists in Linux/UNIX 
 \section{Preparing your data}
 %-------------------------------------------------------------------------------
 
-The format of the input data must be an ASCII/CSV-file with three columns where each line represents a datapoint in space. The two first columns of each line represent the position of a datapoint. $(x, y)$ if using cartesian coordinates and $(r, \theta)$ if using polar coordinates. The last column represents the density in this position.
+The format of the input data must be an ASCII/CSV-file with three columns where each line represents a datapoint in space (or a pickle-file made by \sname). The two first columns of each line represent the position of a datapoint. $(x, y)$ if using cartesian coordinates and $(r, \theta)$ if using polar coordinates. The last column represents the density in this position.
 
 Any units can be used for the input data. How to specify units are covered in the section \textbf{Configuring and running \sname}.
 
 
 %===============================================================================
-\section{Processing algorithm}
+\section{Algorithm}
 %-------------------------------------------------------------------------------
 
-\sname produces artificial lightcurves by analysing the provided dataset according to given configurations. In this section the process for extracting the lightcurve from the dataset is explained.
+\sname produces artificial lightcurves by analysing the provided dataset according to given configurations. In this section the process for extracting the lightcurve from the dataset is explained. You do not have to understand the algorithm to use \sname, but it can be an advantage for interpreting the results. For a quick summary, see section \vref{sec:algorithm_summary}.
 
 \subsection{Loading data}
     %TODO
@@ -130,6 +172,7 @@ Any units can be used for the input data. How to specify units are covered in th
     The space covered by the dataset may represent a larger area than the disk you want to analyse. The dataset is cropped to an inner and outer radius such that the shape of the remaining datapoints resembles a donut. The outer radius represents the size of the disk and makes sure that the disk is circular. The inner radius is necessary to avoid treating the stars themselves as dust, and the density of the dust is very low close to the stars anyway.
 
 \subsection{Rotating}
+    \label{sec:rotating}
     The coordinates of all datapoints are rotated stepwise with the rotation
     matrix $R_z$ for $\theta = [0, 360)\degree$.
     $$
@@ -144,7 +187,7 @@ Any units can be used for the input data. How to specify units are covered in th
     disk rotates we see the stars through different areas of the disk with
     different densities.
 
-    A rotation also happens around the $y$-axis due to the inclination angle $\phi$. $R_y$ is the rotation matrix which would perform this rotation. However, $R_y$ is \emph{not} used, and the $y$-rotation is never performed directly. It is implicitly done in a very different way in a following section \textbf{Mean density of bins, weighted and integrated}.
+    A rotation also happens around the $y$-axis due to the inclination angle $\phi$. $R_y$ is the rotation matrix which would perform this rotation. However, $R_y$ is \emph{not} used, and the $y$-rotation is never performed directly. It is implicitly done in a very different manner, see section \vref{sec:bin_densities}.
     $$
     R_y = \begin{bmatrix}
         \cos(\phi) &          0 & \sin(\phi) \\
@@ -172,6 +215,7 @@ Any units can be used for the input data. How to specify units are covered in th
 
 
 \subsection{Mean density of bins, weighted and integrated}
+    \label{sec:bin_densities}
 
     \subsubsection{Mass integral}
         For each bin a mean density is produced from all the datapoints in that bin. This is done by dividing the total mass of the sylinder with its volume. The mass of a sylinder can be calculated from the following integral.
@@ -248,11 +292,12 @@ Any units can be used for the input data. How to specify units are covered in th
     $$
 
 \subsection{Full algorithm summary}
+    \label{sec:algorithm_summary}
     This is how one analysis is performed, and the product is one lightcurve. If providing different values for certain parameters, like different inclination angles or different outer radii then this analysis will be performed once for each different value of each parameter (different inclinations are actually analysed in quasi-parallell for efficiency).
     \begin{algorithmic}
         \FOR{each $\theta$ in $[0, \hdots, 2\pi]$}
-            \STATE rotate density datapoints angle $\theta$ with $R_z$
-            \STATE rotate stars angle $\theta$ with $R_z$
+            \STATE rotate density datapoints angle $\theta$
+            \STATE rotate stars angle $\theta$ (stars move with disk)
             \FOR{each star $k$}
                 \STATE extract sylinder
                 \STATE bin sylinder
@@ -326,6 +371,11 @@ dtheta=45deg, inc=5deg
 270.000000,0.355814
 315.000000,0.000000
 \end{verbatim*}
+
+\subsection{The plotting environment}
+    If you are unfamiliar with the \texttt{matplotlib} plotting environment, I recommend that you have a quick look at the following url: \url{http://matplotlib.org/users/navigation_toolbar.html}
+    Here it is explain how to manipulate the plot, like zooming or changing the axes. 
+    You can always save the current state of the plot as png, ps, eps, svg or pdf.
 
 
 
