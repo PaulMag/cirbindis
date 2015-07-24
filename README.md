@@ -1,14 +1,14 @@
 # CirBinDis #
 
-Software for creating an artificial light curve from a simulated density map of a circumstellar/circumbinary disk of gas.
+Software for analysing simulated density maps of circumstellar/circumbinary disks of gas.
 
+### What does it do? ###
 
-### What is this repository for? ###
-
-* Create lightcurve from a full rotation of the disk and stars.
+* Create artificial lightcurves from a full rotation of the disk and stars for various inclinations.
 * Create density profiles from various line-of-sights.
+* Save results as csv-files and plots.
 
-### Software requirements ###
+### What do I need? ###
 
 * python
 * numpy
@@ -16,10 +16,21 @@ Software for creating an artificial light curve from a simulated density map of 
 * matplotlib
 * astropy
 
-### How to install ###
+### How do I get it? ###
 
-Clone this repository or download the zip-archive.
+Clone this repository or download the zip-archive. Remember to update.
+
+### How do I use it? ###
+
+* Have you dataset with <x,y,ρ>- or <r,θ,ρ>-columns.
+* Copy and configure 'xml/input.xml' with input parameters.
+* Run 'src/cirbindis.py' (make an alias for this).
+```
+#!bash
+python cirbindis.py myinputfile.xml
+```
+Read the usermanual for more detailed instructions: 'doc/cirbindis_usermanual.pdf'
 
 ### Who do I talk to? ###
 
-For questions, troubleshooting, suggestions, or feedback, contact the author on [paulmag91@gmail.com](paulmag91@gmail.com)
+For questions, troubleshooting, suggestions, and/or feedback, contact the developer: paulmag91@gmail.com
