@@ -26,7 +26,6 @@ Clone this repository or download the zip-archive. Remember to update.
 * Copy and configure 'xml/input.xml' with input parameters.
 * Run 'src/cirbindis.py' (make an alias for this).
 ```
-#!bash
 python cirbindis.py myinputfile.xml
 ```
 Read the usermanual for more detailed instructions: 'doc/cirbindis_usermanual.pdf'
