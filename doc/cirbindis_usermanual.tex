@@ -55,7 +55,7 @@
 }
 
 % Opening:
-\title{\sname \\ Circumbinary disk analyser}
+\title{\sname \\ Circumbinary disk analyser \\ version 0.1}
 \author{Paul Magnus Sørensen-Clark \\ Jerome Bouvier}
 
 % Begin document:
@@ -73,7 +73,7 @@ Paul Magnus Sørensen-Clark:
 Jerome Bouvier:
 \href{mailto:jerome.bouvier@obs.ujf-grenoble.fr}{jerome.bouvier@obs.ujf-grenoble.fr}
 
-\url{https://bitbucket.org/paulmag/circumbinarydisk}
+\url{https://github.com/PaulMag/cirbindis}
 
 \clearpage
 
@@ -122,21 +122,24 @@ This manual explains certain procedures with bash-commands, which exists in Linu
 
 
 \subsection{Downloading and updating}
-    The source code is available at this Bitbucket repository: \\
-    \url{https://bitbucket.org/paulmag/circumbinarydisk} \\
+    \label{sec:downloading}
+
+    The source code is available at this GitHub repository: \\
+    \url{https://github.com/PaulMag/cirbindis} \\
     The updated version of this manual is contained within the repository, so make sure to always consult the newest version after installing/updating \sname. 
 
     \paragraph{Alternative 1:}
     Provided that Git is installed on you computer (\url{https://git-scm.com}) you can easily get all the source files by running the following command at the location where you want the repository (recommended): \\
-    \texttt{> git clone https://paulmag@bitbucket.org/paulmag/circumbinarydisk.git}
+    \texttt{> git clone https://github.com/PaulMag/cirbindis.git}
     
     To update \sname type this inside the repository folder: \\
-    \texttt{> git pull origin develop}
+    \texttt{> git pull origin master}
 
     \paragraph{Alternative 2:}
     You can download the source files as a zip-archive from here: \\
-    \url{https://bitbucket.org/paulmag/circumbinarydisk/downloads} \\
-    Click ``Download repository'', unpack the archive, and place it wherever you want.
+    \url{https://github.com/PaulMag/cirbindis} \\
+    Click ``Download ZIP'' on the right side of the interface,
+    unpack the archive, and place it wherever you want.
 
     To update \sname you have to download the zip-archive again and replace all the old files with the new ones. In other words, make a fresh install.
 
@@ -383,55 +386,52 @@ dtheta=45deg, inc=5deg
 \section{Troubleshooting}
 %-------------------------------------------------------------------------------
 
-\subsection{Some curves are missing in the plot}
-
 \subsection{Contact the author}
     If you cannot find out how to do something and this manual does not explain it,
-    send an email to \href{mailto:paulmag91@gmail.com}{paulmag91@gmail.com} to ask and ask.
-    Do this also if you have suggestions for improvements, as \sname is under development.
+    send an email to \href{mailto:paulmag91@gmail.com}{paulmag91@gmail.com} and ask.
+    Do this also if you have feedback or suggestions for improvements, as \sname is under development.
 
 
 %===============================================================================
-\section{Bibliography}
+% \section{Bibliography}
 %-------------------------------------------------------------------------------
+%TODO Do we need this section?
 
 
 %===============================================================================
 \section{Acknowledgments}
 %-------------------------------------------------------------------------------
+TODO
 
 
 %===============================================================================
-\section{Source code}
+\section{Source code summary}
 %-------------------------------------------------------------------------------
+
+Here is a summary of what the individual files of \sname does.
+The full source code is available at \url{https://github.com/PaulMag/cirbindis} as explained in section \vref{sec:downloading}.
 
 \subsection{\texttt{input.xml}}
     The file for the user to provide input parameters to \sname. You can copy and modify it. It is not a part of the source code itself.
-    \lstinputlisting[language=XML]{../xml/input.xml}
 
-\subsection{\texttt{main.py}}
+\subsection{\texttt{cirbindis.py}}
+    The main file.
     The script that is called when running \sname.
-    \lstinputlisting[language=Python]{../src/main.py}
 
 \subsection{\texttt{DensityMap.py}}
     Contains the class \texttt{DensityMap} for making an instance of a dataset representing a circumbinary disk. It contains most methods that can be performed on the data. Also contains a subclass \texttt{Sylinder}. Sylinders a sub-sets of a full dataset.
-    \lstinputlisting[language=Python]{../src/DensityMap.py}
 
 \subsection{\texttt{Star.py}}
     The simple \texttt{Star} class whose intention is to hold the physical parameters of each star.
-    \lstinputlisting[language=Python]{../src/Star.py}
 
 \subsection{\texttt{Functions.py}}
     A file containing some general functions that are used other places in the program.
-    \lstinputlisting[language=Python]{../src/Functions.py}
 
 \subsection{\texttt{plot.py}}
-    A standalone script that can be used to plot the output of \sname. You can just as well use f.ex. TOPCAT.
-    \lstinputlisting[language=Python]{../src/plot.py}
+    A standalone script that can be used to plot the output of \sname. You can just as well use something else, f.ex. TOPCAT. This script may be outdated.
 
 \subsection{\texttt{make\_testdata.py}}
     A standalone script that can be used to generate artificial datasets that can be analysed by \sname. You can use it for testing and for generating data according to any analytical function that you would like to analyse (then you need to change the function \texttt{density}).
-    \lstinputlisting[language=Python]{../src/make_testdata.py}
 
 
 \end{document}
