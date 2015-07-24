@@ -23,10 +23,10 @@ class Star:
                     float(d["position"]["x"]),
                     float(d["position"]["y"]),
                 ])
-            except KeyError, ValueError:
+            except (KeyError, ValueError, TypeError):
                 position = np.array(func.pol2cart(
                     float(d["position"]["r"]),
-                    float(d["position"]["theta"]),
+                    float(d["position"]["theta"]) / 180. * np.pi,  # Assume deg.
                 ))
             radius = float(d["radius"])
             intensity = float(d["intensity"])
