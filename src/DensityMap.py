@@ -434,6 +434,7 @@ class DensityMap:
             int(np.ceil(np.sqrt(len(inclinations)))),  # No of rows.
             len(inclinations),  # Total no of density profile plots.
         ]
+        radius_max = None
 
         for i, angle in enumerate(angles):
             print "%6.2f / %g" % (angle, theta)
@@ -470,14 +471,26 @@ class DensityMap:
                             ))
                         axes_dprof[j].plot(
                             sylinder.radiuses,
-                            sylinder.densities,
+                            sylinder.densities *
+                                u.Unit(
+                                    u.Unit(self.unit["mass"]) /
+                                    u.Unit(self.unit["distance"])**3
+                                ).to("gram/cm3"),
                             label="%3g" % angle,
                         )
+                        for l, density in enumerate(sylinder.densities):
+                            if density == 0:
+                                if sylinder.radiuses[l] > radius_max:
+                                    radius_max = sylinder.radiuses[l]
+                                break
                         axes_dprof[j].set_title("inc=%2g" % inclination)
 
         # Density profile:
+        if radius_max is None:
+            radius_max = self.radius_out
         for j in range(nplots[2]):  # All subplots.
-            axes_dprof[j].set_xlim([0, self.radius_out])
+            axes_dprof[j].set_xlim([self.radius_in, radius_max])
+            axes_dprof[j].set_yscale("log")
             axes_dprof[j].yaxis.set_major_formatter( \
                 ticker.FormatStrFormatter('%.1e'))
         for j in range(nplots[0]):  # Bottom row.
@@ -485,9 +498,9 @@ class DensityMap:
         for j in range(nplots[2] - nplots[0]):  # All except bottom row.
             axes_dprof[j].set_xticklabels([])
         for j in range(0, nplots[2], nplots[0]):  # Left coumn.
-            axes_dprof[j].set_ylabel("density [solMass/a^3]")
+            axes_dprof[j].set_ylabel("density [g/cm^3]")
         axes_dprof[nplots[0]-1].legend(  # Only top right.
-            title="angle [deg]=",
+            title="v.angle [deg]=",
             loc="best",
         )
 
@@ -650,7 +663,6 @@ class DensityMap:
                     % (outfolder, outname, normalization))
                 # Density profile:
                 if use_dprof:
-                    outname.rstrip()
                     fig_dprof.savefig("%s/%sdprofiles.png" \
                         % (outfolder, outname))
 
