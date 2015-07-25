@@ -380,14 +380,16 @@ This is the most practical and maybe the most important section, as it explains 
         \item[inclination]
             Which inclinations to analyse the system in. Several inclinations can be separated with spaces. When you provide several inclinations their respective lightcurves will be displayed in the same plot. If no inclinations is provided a default of $90\degree$ (edge-on) will be chosen.
         \item[diskmass]
-            The total mass of the entire circumstellar/binary disk, including the vast outer parst which doesn't cause extinction. The number you provide will be in the units you decided in unit-mass. A typical value is 0.01 solMass or smaller. This number is used to calculate a density scaling factor.
+            The total mass of the entire circumstellar/binary disk, including the vast outer parst which doesn't cause extinction. The number you provide will be in the units you decided in unit-mass. A typical value is 0.01 solMass or smaller. This number is used to calculate a density scaling factor. You can provide several diskmasses by separating them with spaces to perform several analysis with different densities.
         \item[diskradius]
             The total radius of the entire circumstellar/binary disk, including the vast outer parst which doesn't cause extinction. The number you provide will be in the units you decided in unit-distance. A typical value is 50 AU. This number is used to calculate a density scaling factor.
         \item[kappa]
             Opacity constant. $\kappa$ is always provided in units of $cm^2 / g$. A typical value is between 5 and 100.
         \item[H0]
-            The semi-thickness of the disk. The number you provide will be in the units you decided in unit-distance. $H_0$ determines the density at a distance from the midplane of the disk. If $H_0$ is small there can be less obstruction at higher inclinations.
-            $\rho(x, y, z) = \rho_0(x, y) \cdot \exp\left(- z^2 / H_0^2\right)$
+            The semi-thickness of the disk. The number you provide will be in the units you decided in unit-distance. $H_0$ determines the density at a distance from the midplane of the disk: 
+            $\rho(x, y, z) = \rho_0(x, y) \cdot \exp\left(- z^2 / H_0^2\right)$.
+            If $H_0$ is small there can be less obstruction at higher inclinations.
+            You can provide several values for $H_0$ by separating them with spaces it you want to analyse different thicknesses.
         \item[star]
             The star contains several subfields, which determines the parameters for one particular stars. If you want 2 (or more) stars, copy-paste the entire star section with all its fields and fill in the parameters for each star individually.
             \begin{description}
