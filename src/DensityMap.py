@@ -691,7 +691,8 @@ class Sylinder(DensityMap):
         inclinations=None,
         radius_in=0,
         radius_out=np.inf,
-        kappa=10.
+        kappa=10.,
+        ngrid=7,
     ):
 
         # If the inclination is a single number, put it in a list:
@@ -715,6 +716,8 @@ class Sylinder(DensityMap):
         H=1.,
         n_steps=None,
         dr=None,
+        ngrid=7,
+        ngridz=17,
     ):
         """Bin this sylinder's datapoints into a set of mean densities.
 
@@ -759,11 +762,13 @@ class Sylinder(DensityMap):
         dpoints = int(round(self.data.shape[0] / float(n_steps)))
             # How many datapoints to include in each bin.
 
+        densitygrid = np.zeros((n_steps, ngrid, ngridz))
         densities = np.zeros(n_steps)
         drs = np.zeros(n_steps)
         radiuses = np.zeros(n_steps)
 
         data = self.data[np.argsort(self.data[:, 0])]
+        datagrid = [[None]*ngrid]*n_steps
 
         for i in xrange(n_steps):
             start = i*dpoints
@@ -777,6 +782,12 @@ class Sylinder(DensityMap):
             else:
                 end = (i+1)*dpoints
                 drs[i] = data[end, 0] - data[start, 0]
+            radiuses[i] = self.radius_in + np.sum(drs[:i]) + drs[i]/2.
+            # Constant g used several times in calculations:
+            if False:
+                g = np.sqrt(2) * H * radiuses[i]  # H(r) depending on radius.
+            else:
+                g = np.sqrt(2) * H  # Constant H.
             W = np.sqrt(
                 self.star.radius**2 -
                 (data[start:end, 1] - self.star.position_rotated[1])**2
@@ -787,12 +798,6 @@ class Sylinder(DensityMap):
             )
             z1 = z - W
             z2 = z + W
-            radiuses[i] = self.radius_in + np.sum(drs[:i]) + drs[i]/2.
-            # Constant g used several times in calculations:
-            if False:
-                g = np.sqrt(2) * H * radiuses[i]  # H(r) depending on radius.
-            else:
-                g = np.sqrt(2) * H  # Constant H.
             densities[i] = (
                 np.sum(
                     # \int_z1^z2 \rho_0 * e^{- z^2 / (2*H^2)} dz
@@ -801,6 +806,36 @@ class Sylinder(DensityMap):
                 ) / (2. * np.sum(W))
             )
 
+            for j in xrange(ngrid):
+                factor = 2. * self.star.radius / ngrid
+                mask = (
+                    (
+                        self.star.position_rotated[1] -
+                        self.star.radius + j * factor <
+                        data[start:end][:, 1]
+                    ) * (
+                        data[start:end][:, 1] <=
+                        self.star.position_rotated[1] -
+                        self.star.radius + (j+1) * factor
+                    )
+                )
+                datagrid[i][j] = data[start:end][np.where(mask)]
+
+                dz = 2. * self.star.radius / ngridz / np.cos(inclination)
+                for k in xrange(ngridz):
+                    z1 = (
+                        (datagrid[i][j][:, 0] - self.star.position_rotated[0]) *
+                        np.tan(inclination) -
+                        self.star.radius + j * dz
+                    )
+                    z2 = z1 + dz
+                    densitygrid[i,j,k] = (
+                        np.sum(
+                            # \int_z1^z2 \rho_0 * e^{- z^2 / (2*H^2)} dz
+                            g * datagrid[i][j][:, ~0] * 0.5 * np.sqrt(np.pi) *
+                            (special.erf(z2 / g) - special.erf(z1 / g))
+                        ) / (dz * len(datagrid[i][j]))
+                    )
         self.densities = densities
         self.drs = drs
         self.radiuses = radiuses
