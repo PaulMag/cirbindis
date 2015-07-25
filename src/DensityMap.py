@@ -823,4 +823,4 @@ class Sylinder(DensityMap):
             tau = kappa * density * dr
             intensity *= np.exp(-tau)
 
-        return intensity * (u.Unit(self.unit["intensity"])).to("erg / (cm2 s)")
+        return intensity
