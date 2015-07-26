@@ -203,6 +203,25 @@ class DensityMap:
             # Normalize before scaling, or not? Yes.
         self.data[:, ~0] *= rho_central
 
+        r_innercavity = 2.0  # This variable is currently hardcoded.
+        mask_innercavity = np.linalg.norm(self.data[:, 0:2], axis=1) <= r_innercavity
+        data_innercavity = self.data[np.where(mask_innercavity)]
+        rho_innercavity = data_innercavity[:, ~0].mean()
+        mass_innercavity = rho_innercavity * (np.pi * (r_innercavity**2 - self.radius_in**2) * np.sqrt(np.pi/2)*self.H)
+        print "rho_innercavity r=[r_in,%g] =" % r_innercavity, u.Quantity(
+            rho_innercavity,
+            u.Unit(self.unit["mass"]) / u.Unit(self.unit["distance"])**3,
+        )
+        print "rho_innercavity r=[r_in,%g] =" % r_innercavity, u.Quantity(
+            rho_innercavity,
+            u.Unit(self.unit["mass"]) / u.Unit(self.unit["distance"])**3,
+        ).to(u.Unit("g") / u.Unit("cm")**3)
+        # ).to(u.Unit("g") / u.Unit("cm")**3).value)
+        print "mass_innercavity r=[r_in,%g] =" % r_innercavity, u.Quantity(
+            mass_innercavity,
+            u.Unit(self.unit["mass"]),
+        )
+
 
     def writeto(self, filename, method=None, separator=" "):
         """Write self.data to a file for later use.
