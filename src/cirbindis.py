@@ -1,4 +1,4 @@
-__version__ = "0.1"
+__version__ = "0.2.0"
 
 import sys
 import numpy as np
@@ -48,6 +48,7 @@ if __name__ == "__main__":
         )
         raise
     infile.close()
+    input_ = func.extract_booleans(input_)
 
 
     for radius_in in func.to_list(input_["radius_in"], float):
@@ -104,9 +105,11 @@ if __name__ == "__main__":
                         n_angle=int(input_["azimuthsteps"]),
                         n_radius=int(input_["radiussteps"]),
                         unit=input_["unit"]["angle"],
-                        save=True,
-                        savefig=True,
-                        show=True,
+                        lcurve_show=input_["lightcurves"]["show_plot"],
+                        lcurve_savefig=input_["lightcurves"]["save_plot"],
+                        lcurve_savecsv=input_["lightcurves"]["save_csvtable"],
+                        dprofile_show=input_["densityprofiles"]["show_plot"],
+                        dprofile_savefig=input_["densityprofiles"]["save_plot"],
                         normalizations=func.to_list(input_["normalization"]),
                         outfolder=input_["outfolder"],
                     )
