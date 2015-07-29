@@ -2,6 +2,30 @@ import os
 import numpy as np
 
 
+positive = "yes", "true"
+negative = "no", "false"
+exclude  = "exclude", "never"
+def extract_booleans(d):
+    """Convert yes/true/no/false strings in a (nested) dict to actual booleans.
+
+    d: (dict) The input dict that will have its strings converted to
+        booleans.  Strings that does not have a boolean meaning will keep
+        their original value.
+    return: (dict) Returns the input dict with the same shape.
+    """
+    for key, value in d.iteritems():
+        if isinstance(value, dict):
+            extract_booleans(value)
+        else:
+            if value in positive:
+                d[key] = True
+            elif value in negative:
+                d[key] = False
+            elif value in exclude:
+                d[key] = None
+    return d
+
+
 def to_list(x, dtype=None, separator=" "):
     """Converts any sequence or non-sequence into an array.
 
@@ -12,7 +36,7 @@ def to_list(x, dtype=None, separator=" "):
     If x is a sequence, convert it into an array.
     If x is a non-sequence, put it into a size-1 array.
 
-    X: (anything)  Something to be converted into an array.
+    x: (anything)  Something to be converted into an array.
     dtype: (type) What type of objects the array contains. F.ex. float. If
         None, numpy will interpret the type itself.
     separator: (string) If x is a string to be split, this is the separator.

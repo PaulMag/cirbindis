@@ -203,6 +203,25 @@ class DensityMap:
             # Normalize before scaling, or not? Yes.
         self.data[:, ~0] *= rho_central
 
+        r_innercavity = 2.0  # This variable is currently hardcoded.
+        mask_innercavity = np.linalg.norm(self.data[:, 0:2], axis=1) <= r_innercavity
+        data_innercavity = self.data[np.where(mask_innercavity)]
+        rho_innercavity = data_innercavity[:, ~0].mean()
+        mass_innercavity = rho_innercavity * (np.pi * (r_innercavity**2 - self.radius_in**2) * np.sqrt(np.pi/2)*self.H)
+        print "rho_innercavity r=[r_in,%g] =" % r_innercavity, u.Quantity(
+            rho_innercavity,
+            u.Unit(self.unit["mass"]) / u.Unit(self.unit["distance"])**3,
+        )
+        print "rho_innercavity r=[r_in,%g] =" % r_innercavity, u.Quantity(
+            rho_innercavity,
+            u.Unit(self.unit["mass"]) / u.Unit(self.unit["distance"])**3,
+        ).to(u.Unit("g") / u.Unit("cm")**3)
+        # ).to(u.Unit("g") / u.Unit("cm")**3).value)
+        print "mass_innercavity r=[r_in,%g] =" % r_innercavity, u.Quantity(
+            mass_innercavity,
+            u.Unit(self.unit["mass"]),
+        )
+
 
     def writeto(self, filename, method=None, separator=" "):
         """Write self.data to a file for later use.
@@ -384,10 +403,11 @@ class DensityMap:
         unit="deg",
         n_radius=None,
         dr=None,
-        save=False,
-        savefig=False,
-        show=False,
-        use_dprof=False,
+        lcurve_show=False,
+        lcurve_savefig=False,
+        lcurve_savecsv=False,
+        dprofile_show=False,
+        dprofile_savefig=False,
         normalizations=["stellar"],
         short_title=True,
         outfolder=None,
@@ -426,15 +446,16 @@ class DensityMap:
         lightcurve = np.zeros((len(inclinations), n_angle))
 
         # Density profile:
-        fig_dprof = plt.figure(figsize=(12,6))
-        fig_dprof.suptitle("%s" % self.dataname)
-        axes_dprof = []
-        nplots = [
-            int(round(np.sqrt(len(inclinations)))),  # No of columns.
-            int(np.ceil(np.sqrt(len(inclinations)))),  # No of rows.
-            len(inclinations),  # Total no of density profile plots.
-        ]
-        radius_max = None
+        if dprofile_show or dprofile_savefig:
+            fig_dprof = plt.figure(figsize=(12,6))
+            fig_dprof.suptitle("%s" % self.dataname)
+            axes_dprof = []
+            nplots = [
+                int(round(np.sqrt(len(inclinations)))),  # No of columns.
+                int(np.ceil(np.sqrt(len(inclinations)))),  # No of rows.
+                len(inclinations),  # Total no of density profile plots.
+            ]
+            radius_max = None
 
         for i, angle in enumerate(angles):
             print "%6.2f / %g" % (angle, theta)
@@ -462,7 +483,8 @@ class DensityMap:
                     lightcurve[j, i] += sylinder.integrate()
 
                     # Density profile:
-                    if k == 0:  # Only do for first star:
+                    if (dprofile_show or dprofile_savefig) and (k == 0):
+                        # Only do for first star.
                         if i == 0:  # Only initialize axes once:
                             axes_dprof.append(fig_dprof.add_subplot(
                                 nplots[1],
@@ -486,26 +508,27 @@ class DensityMap:
                         axes_dprof[j].set_title("inc=%2g" % inclination)
 
         # Density profile:
-        if radius_max is None:
-            radius_max = self.radius_out
-        for j in range(nplots[2]):  # All subplots.
-            axes_dprof[j].set_xlim([self.radius_in, radius_max])
-            try:
-                axes_dprof[j].set_yscale("log")  # Does not work if all zeros.
-            except:
-                pass
-            axes_dprof[j].yaxis.set_major_formatter( \
-                ticker.FormatStrFormatter('%.1e'))
-        for j in range(nplots[0]):  # Bottom row.
-            axes_dprof[~j].set_xlabel("radius [a]")
-        for j in range(nplots[2] - nplots[0]):  # All except bottom row.
-            axes_dprof[j].set_xticklabels([])
-        for j in range(0, nplots[2], nplots[0]):  # Left coumn.
-            axes_dprof[j].set_ylabel("density [g/cm^3]")
-        axes_dprof[nplots[0]-1].legend(  # Only top right.
-            title="v.angle [deg]=",
-            loc="best",
-        )
+        if dprofile_show or dprofile_savefig:
+            if radius_max is None:
+                radius_max = self.radius_out
+            for j in range(nplots[2]):  # All subplots.
+                axes_dprof[j].set_xlim([self.radius_in, radius_max])
+                try:
+                    axes_dprof[j].set_yscale("log")  # Does not work if all 0s.
+                except:
+                    pass
+                axes_dprof[j].yaxis.set_major_formatter( \
+                    ticker.FormatStrFormatter('%.1e'))
+            for j in range(nplots[0]):  # Bottom row.
+                axes_dprof[~j].set_xlabel("radius [a]")
+            for j in range(nplots[2] - nplots[0]):  # All except bottom row.
+                axes_dprof[j].set_xticklabels([])
+            for j in range(0, nplots[2], nplots[0]):  # Left coumn.
+                axes_dprof[j].set_ylabel("density [g/cm^3]")
+            axes_dprof[nplots[0]-1].legend(  # Only top right.
+                title="v.angle [deg]=",
+                loc="best",
+            )
 
         print "%6.2f / %g" % (theta, theta)
 
@@ -530,7 +553,7 @@ class DensityMap:
                         lightcurve[j] /= maxflux
                     # else lightcurve[j] is all zeros, so avoid dividing by 0
 
-            if show or savefig:
+            if lcurve_show or lcurve_savefig:
                 fig = plt.figure(figsize=(12,6))
                 fig.gca().get_yaxis().get_major_formatter().set_useOffset(False)
                     # Always use absolute labels and not offsets.
@@ -600,7 +623,7 @@ class DensityMap:
                         unit,
                     )
                 )
-                if save:
+                if lcurve_savecsv:
                     outname = (
                         "%s__H=%g__"
                         "r_in=%g__r_out=%g__"
@@ -624,14 +647,14 @@ class DensityMap:
                         outfile.write("%f,%f\n" % (angle, flux))
                     outfile.close()
 
-                if show or savefig:
+                if lcurve_show or lcurve_savefig:
                     ax.plot(
                         angles,
                         lightcurve[j],
                         label="%2g" % inclinations[j],
                     )
 
-            if show or savefig:
+            if lcurve_show or lcurve_savefig:
                 if short_title:
                     # Only use the name of the data in the title.
                     ax.set_title(self.dataname)
@@ -651,7 +674,11 @@ class DensityMap:
                     borderaxespad=0.,
                 )
 
-            if savefig:
+            if lcurve_savefig or dprofile_savefig:
+                if outfolder is None:
+                    outfolder = self.outfolder
+                func.make_folder(outfolder)
+                func.make_folder(outfolder + "/plots")
                 outname = (
                     "%s__H=%g__"
                     "r_in=%g__r_out=%g__"
@@ -661,21 +688,19 @@ class DensityMap:
                         self.radius_out,
                     )
                 )
-                if outfolder is None:
-                    outfolder = self.outfolder
-                func.make_folder(outfolder)
-                func.make_folder(outfolder + "/plots")
+
+            if lcurve_savefig:
                 fig.savefig("%s/plots/%s%snorm.png" \
                     % (outfolder, outname, normalization))
-                # Density profile:
-                if use_dprof:
-                    fig_dprof.savefig("%s/plots/%sdprofiles.png" \
-                        % (outfolder, outname))
+            if dprofile_savefig:
+                fig_dprof.savefig("%s/plots/%sdprofiles.png" \
+                    % (outfolder, outname))
 
-        if show:
+        if lcurve_show or dprofile_show:
             raw_input("Press <enter> to view the plots: ")
-            fig.show()
-            if use_dprof:
+            if lcurve_show:
+                fig.show()
+            if dprofile_show:
                 fig_dprof.show()
             raw_input("Press <enter> to close plots and exit: ")
 
@@ -823,4 +848,4 @@ class Sylinder(DensityMap):
             tau = kappa * density * dr
             intensity *= np.exp(-tau)
 
-        return intensity * (u.Unit(self.unit["intensity"])).to("erg / (cm2 s)")
+        return intensity

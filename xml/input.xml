@@ -28,8 +28,6 @@
             <!--Examples:  solMass  |  kg  |  g -->
         <distance>10.921 solRad</distance>
             <!--Examples:  AU  |  solRad  |  km  |  m  |  cm -->
-        <intensity>erg s^-1 cm^-2</intensity>
-            <!--Examples:  erg s^-1 cm^-2   |   J / (m2 s) -->
         <angle>deg</angle>
             <!--Examples:  rad  |  deg  |  arcmin  |  arcsec -->
     </unit>
@@ -37,33 +35,32 @@
     <!--==========Input data=================================================-->
     <!--The pathname to the dataset to be analysed. The pathname must be
         relative to where you run the program from, or it can be an absolute
-        path. It can be an ACII file with (x,y,density) columns or a pickle
+        path. It can be an ACII file with 3 columns or a pickle
         file. If it is ASCII you must also specify if the coordinates are
-        cartesian (x,y) or polar (r,theta).
+        cartesian (x,y,density) or polar (r,theta,density).
     -->
     <datafile>data/data_0.25</datafile>
     <!--A name/identifier for the current dataset. This name will be included
         in the filenames of the output lightcurves and in the title of the
-        plots. This field is optional. If left blank the datafilename will be
-        used as the default dataname.
+        plots. If left blank the datafilename will be used instead.
     -->
     <dataname></dataname>
         <!--Examples:  data0032  |  cs=0.25 -->
     <!--If you provide a pathname here the cropped version (according to
-        "Disk Boundaries) of the input datafile will be saved. This cropped
+        "Disk Boundaries") of the input datafile will be saved. This cropped
         version of the data can then be used as the input datafile later. If
         you use "*.p" or "*.pickle" as filename it will be saved as a pickle
         file. This field is optional. If left blank nothing will happen. If
         several pathnames are provided (separated with spaces) several
         copies will be made.
     -->
+    <resave_as></resave_as>
     <!--
         How to normalize the output data.
         Options are "mean", "max", "stellar", or any combination of these.
     -->
     <normalization>stellar</normalization>
         <!--Examples:  stellar mean  |  max  |  all -->
-    <resave_as></resave_as>
         <!--Examples:  data_0.25_cropped3.0.csv  |  data_0.25_cropped3.0.p -->
     <system>cartesian</system>
         <!--Examples:  cartesian  |  polar -->
@@ -75,16 +72,26 @@
         created automatically.
     -->
     <outfolder>results</outfolder>
+    <!--What do you want to do?
+    -->
+    <lightcurves>
+        <show_plot>yes</show_plot>
+        <save_plot>yes</save_plot>
+        <save_csvtable>yes</save_csvtable>
+    </lightcurves>
+    <densityprofiles>
+        <show_plot>yes</show_plot>
+        <save_plot>yes</save_plot>
+    </densityprofiles>
 
     <!--==========Disk boundaries============================================-->
     <!--Define the inner and out radius for where the disk exists. The
         dataset will be cropped to these limits, so it becomes a "donut".
         You can provide several inner and outer radiuses by separating them
-        with spaces it you want to analyse different sized disks.
-        If radius_in is not provided it will default to just outside the
-        position of the stars. If radius_out is not provided it will default
-        to the radius that defines the largest circle that can fit within
-        the dataset.
+        with spaces it you want to analyse different sized disks at the same
+        time. If radius_in is left blankt it will default to just outside
+        the position of the stars. If radius_out is left blank it will
+        default to the smallest radius that contains the entire dataset.
     -->
     <radius_in>1.0</radius_in>
         <!--Examples:  1  |  1.5  |  1 1.25 1.5 -->
@@ -94,7 +101,7 @@
     <!--==========Inclinations===============================================-->
     <!--Which inclinations to analyse the system in. Several inclinations
         can be separated with spaces. If no inclinations is provided a
-        default of 90 will be chosen.
+        default of 90 (edge-on) will be chosen.
     -->
     <inclination>60 80 90</inclination>
         <!--Examples:  90  |  85 87.5 90  |  60 70 80 85 90 -->
