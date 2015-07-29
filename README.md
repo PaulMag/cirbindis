@@ -1,5 +1,7 @@
 # CirBinDis #
 
+Version 0.2.0
+
 Software for analysing simulated density maps of circumstellar/circumbinary disks of gas.
 
 ### What does it do? ###
