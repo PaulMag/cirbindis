@@ -37,6 +37,7 @@
 \newcommand{\U}[1]{\, \textrm{#1}} % display units prettily, ex: 15.4\U{m} -> 15.4 m
 \newcommand{\degree}{\, ^\circ}    % make a degree symbol
 \newcommand{\sname}{\texttt{CirBinDis }}
+\newcommand{\sversion}{0.2.0 }
 
 \newcommand{\bilde}[3]{
     \begin{figure}[htbp]
@@ -55,7 +56,7 @@
 }
 
 % Opening:
-\title{\sname \\ Circumbinary disk analyser \\ version 0.1}
+\title{\sname \\ Circumbinary disk analyser \\ version \sversion}
 \author{Paul Magnus Sørensen-Clark \\ Jerome Bouvier}
 
 % Begin document:
@@ -82,7 +83,7 @@ Jerome Bouvier:
 \section{Introduction}
 %-------------------------------------------------------------------------------
 
-A small piece of software for receiving an artificial light curve from a simulated density map of a gas disk around a binary star.
+A small piece of software for receiving an artificial light curve from a simulated density map of a gas disk around a binary star. This is version \sversion of the usermanual. If your \sname is in a different version, make sure to update either the software or the manual, see section \vref{sec:downloading}.
 
 This manual explains certain procedures with bash-commands, which exists in Linux/UNIX-based systems (including Apple OS). \sname should work in Windows as well, but some bash-commads may be different.
 
@@ -158,7 +159,138 @@ This manual explains certain procedures with bash-commands, which exists in Linu
 
 The format of the input data must be an ASCII/CSV-file with three columns where each line represents a datapoint in space (or a pickle-file made by \sname). The two first columns of each line represent the position of a datapoint. $(x, y)$ if using cartesian coordinates and $(r, \theta)$ if using polar coordinates. The last column represents the density in this position.
 
-Any units can be used for the input data. How to specify units are covered in the section \textbf{Configuring and running \sname}.
+Any units can be used for the input data. How to specify units are covered in section \vref{sec:input}.
+
+
+
+%===============================================================================
+\section{Configuring and running \sname}
+%-------------------------------------------------------------------------------
+
+How to make necessary configurations and then run \sname to perform an analysis.
+
+This is the most practical and maybe the most important section, as it explains how to actually use the software.
+
+\subsection{Input parameters}
+    \label{sec:input}
+
+    The input parameters for each run of \sname is configured in an XML file with a predetermined layout.
+    Inside the repository you will find \texttt{/xml/input.xml}. Copy this file, save it together with your dataset, and modify the values of the fields as required for your dataset (do not blindly use the default values).
+
+    Specifically, this is where you provide the filename of the dataset to analyse.
+    If \texttt{input.xml} is in another folder than the dataset you need to write the relative or absolute pathname of the datafile.
+
+    You can save your copy of the XML-file with whatever name you wish, which can be useful to link separate XML-files to specific datasets that are in the same folder, or if you have diffenert sets of parameters that you want to reuse on the same dataset.
+
+    Here follows a detailed description of what all the fields in the input file means.
+
+    \begin{description}
+        \item[unit-mass]
+            Here you state which mass unit you want to use. This unit is interpreted by \texttt{AstroPy}'s Unit-module and it can be almost any mass unit or quantity of units you can think off. The full list of possibilities exists here:
+            \url{http://astropy.readthedocs.org/en/latest/units/#module-astropy.units.si}
+            The most practical unit is often the solar mass, which is written as ``\texttt{solMass}''.
+            You could use ``\texttt{geoMass}'' (Earth's mass) or ``\texttt{1e10 kg}''.
+        \item[unit-distance]
+            Same rules as for unit-mass, but this is your distance unit. Typical units can be ``\texttt{au}'', ``\texttt{11 solRad}'', or ``\texttt{1.7e10 m}''.
+        \item[unit-angle]
+            This is your distance unit. It can be ``\texttt{rad}'', ``\texttt{deg}'', ``\texttt{arcmin}'', ``\texttt{arcsec}''.
+        \item[datafile]
+            The pathname to the dataset to be analysed. The pathname must be relative to where you run the \sname from, f.ex. ``\texttt{data/mydiskdata.dat}'', or it can be an absolute path. It can be an ACII file with 3 columns or a pickle file. If it is ASCII you must also specify if the coordinates are cartesian $(x,y,\rho)$ or polar $(r,\theta,\rho)$. $x,y,r$ will be in the distance unit you chose. $\theta$ (if you use polar coordinates) will be in the angle unit you chose. The density $\rho$ will be scaled to a suitable unit ``behind the scenes'', depending on \texttt{radius\_in}, \texttt{radius\_out}, \texttt{diskradius}, and \texttt{diskmass}.
+        \item[dataname]
+            A name/identifier for the current dataset. This name will be included
+            in the filenames of the output lightcurves and in the title of the
+            plots. If left blank the datafilename will be used instead.
+        \item[resave\_as]
+            If you provide a filename/pathname here the cropped version (according to radius\_in, radius\_out) of the input datafile will be saved. This cropped version of the data can then be used as the input datafile later. This is useful because it can reduce the size of the datafile. Loading millions of lines of data takes a while. If you use ".p" or ".pickle" as filename extension it will be saved as a pickle file. If left blank there will \emph{not} be any saving. If several filenames are provided (separated with spaces) several copies will be made with different names. Usually you will want to resave each of your datasets as a pickle-file once, and after that you should leave this field blank.
+        \item[normalization]
+            How to normalize the output data (lightcurve). There are 3 options, as listed below. You can choose several of them at the same time by writing several words separated by spaces, or you can write ``\texttt{all}''.
+            \begin{description}
+                \item[mean]
+                    Divide each lightcurve with its mean value.
+                \item[max]
+                    Divide each lightcurve with its maximum value.
+                \item[stellar]
+                    Divide each lightcurve with its unobscured stellar value. By that we mean the flux it would have if there was no extinction. This is the only normalization method where we see the relation between the different curves. If some curves are much fainter than others they will appear as $\approx 0$.
+            \end{description}
+
+        \item[system]
+            Write ``\texttt{cartesian}'' if your data is $(x,y,\rho)$ or ``\texttt{polar}'' if your data is $(r,\theta,\rho)$.
+        \item[outfolder]
+            The pathname to the folder to contain the output files. The pathname must be relative to where you run the program from, or it can be an absolute path. If the folder does not already exist it will be created automatically. Inside this folder there will be created 2 more folders: ``plots'' for the plot images and ``csvtables'' for CSV-files for each lightcurve on the format ($\theta$,flux).
+        \item[radius\_in]
+            Define the inner and out radius for where the part of the disk which causes extinction exists. The number you provide will be in the units you decided in unit-distance. The dataset will be cropped to these limits, so it becomes a ``donut''. You can provide several inner and outer radiuses by separating them with spaces it you want to analyse different sized disks at the same time. If radius\_in is left blank it will default to just outside the position of the stars.
+        \item[radius\_out]
+            If radius\_out is left blank it will default to the smallest radius that contains the entire dataset
+        \item[inclination]
+            Which inclinations to analyse the system in. Several inclinations can be separated with spaces. When you provide several inclinations their respective lightcurves will be displayed in the same plot. If no inclinations is provided a default of $90\degree$ (edge-on) will be chosen.
+        \item[diskmass]
+            The total mass of the entire circumstellar/binary disk, including the vast outer parst which doesn't cause extinction. The number you provide will be in the units you decided in unit-mass. A typical value is 0.01 solMass or smaller. This number is used to calculate a density scaling factor. You can provide several diskmasses by separating them with spaces to perform several analysis with different densities.
+        \item[diskradius]
+            The total radius of the entire circumstellar/binary disk, including the vast outer parst which doesn't cause extinction. The number you provide will be in the units you decided in unit-distance. A typical value is 50 AU. This number is used to calculate a density scaling factor.
+        \item[kappa]
+            Opacity constant. $\kappa$ is always provided in units of $cm^2 / g$. A typical value is between 5 and 100.
+        \item[H0]
+            The semi-thickness of the disk. The number you provide will be in the units you decided in unit-distance. $H_0$ determines the density at a distance from the midplane of the disk:
+            $\rho(x, y, z) = \rho_0(x, y) \cdot \exp\left(- z^2 / H_0^2\right)$.
+            If $H_0$ is small there can be less obstruction at higher inclinations.
+            You can provide several values for $H_0$ by separating them with spaces it you want to analyse different thicknesses.
+        \item[star]
+            The star contains several subfields, which determines the parameters for one particular stars. If you want 2 (or more) stars, copy-paste the entire star section with all its fields and fill in the parameters for each star individually.
+            \begin{description}
+                \item[x,y]
+                    The cartesian position of the star in unit-distance.
+                    Leave $<r,theta>$ blank or delete them entirely if you use these.
+                \item[r, theta]
+                    The polar position of the star in unit-distance and degrees(!).
+                    Leave $<x,y>$ blank or delete them entirely if you use these.
+                \item[radius]
+                    The radius of the star in unit-distance. This determines the radius of the line-of-sight sylinder.
+                \item[intensity]
+                    The intensity of the star. This is entirely unitless, because the lightcurves are always normalized anyway. What matters is only the relative intensity between the stars, if you have several stars.
+            \end{description}
+
+        \item[azimuthsteps]
+            How many different line-of-sights to analyse. This is the resolution of the output lightcurves. $\D \theta = 360\degree / \textrm{azimuthsteps}$. The entire dataset needs to go through a matrix rotation for each azimuthstep, and that is by far the slowest part of the algorithm. It is often wise to choose a low number here first to get a rough idea of what the lightcurves will look like and then increase it to over 100 steps when you want to see fine structures.
+        \item[radiussteps]
+            How many bins to divide the line-of-sight sylinders in. This number should be as high as possible to increase accuracy of the flux integration. If you make density profiles this will determine the resolution. A typical value is 100, but if you have enough datapoints, set it even higher. If you try to use more radius steps than there is datapoints in each sylinder an error will happen.
+    \end{description}
+
+\subsection{Executing the code}
+    When you have prepared your input XML-file with your dataset, type the command \texttt{cirbindis} \\
+    (or \texttt{python \textasciitilde/path\_to\_repository\_folder/circumbinarydisk/src/cirbindis.py})
+    followed by the name of your XML-file in a terminal.
+    F.ex.: \\
+    \texttt{> cirbindis input.xml} \\
+    \texttt{> cirbindis dataA.xml} \\
+    \texttt{> cirbindis dataA\_big.xml} \\
+    \texttt{> cirbindis data/set1.xml} \\
+    \texttt{> python src/cirbindis.py input.xml} (without alias) \\
+    The software will run until it has completed the analysis of your dataset with the parameters you specified, or stop and throw an error message if there is a problem with the configuration.
+
+\subsection{Output}
+    The output after a \sname analysis is a comma-separated-value (csv) file. The output file will be placed in the path you specified in \texttt{input.xml}. The filename contains the value of the parameters $H$, $r_{in}$, $r_{out}$, and inclination ($\phi$), separated by double underscores ``\_\_''. A filename can be f.ex.
+    ``\texttt{H=0.1\_\_r\_in=0.75\_\_r\_out=3\_\_inc=5.csv}''.
+    If you perform several analysis of the same dataset at once, f.ex. by providing several values for $r_{out}$, then one outfile will be produced for each different value of $r_{out}$.
+
+    The first line of the output is a header containing all the physical and numerical parameters for the simulation. There are two columns. The first column lists rotation angles $\theta$ in units of degrees. The second column lists the observed intensities given the respective angles, normalised so the mean intensity is $1$. A output file with \texttt{azimuthsteps=8} can look like this:
+\begin{verbatim*}
+#H=0.1, kappa=10, r_star=0.21-0.19, r_in=0.75, r_out=3, dr=0.75,
+dtheta=45deg, inc=5deg
+0.000000,0.000000
+45.000000,0.000000
+90.000000,0.000000
+135.000000,0.000000
+180.000000,7.644186
+225.000000,0.000000
+270.000000,0.355814
+315.000000,0.000000
+\end{verbatim*}
+
+\subsection{The plotting environment}
+    If you are unfamiliar with the \texttt{matplotlib} plotting environment, I recommend that you have a quick look at the following url: \url{http://matplotlib.org/users/navigation_toolbar.html}
+    Here it is explained how to manipulate the plot, like zooming or changing the axes.
+    You can always save the current state of the plot as png, ps, eps, svg or pdf.
+
 
 
 %===============================================================================
@@ -315,137 +447,6 @@ Any units can be used for the input data. How to specify units are covered in th
             \STATE $I_{\theta,total} = \sum_k I_{k,end}$
         \ENDFOR
     \end{algorithmic}
-
-
-
-
-%===============================================================================
-\section{Configuring and running \sname}
-%-------------------------------------------------------------------------------
-
-How to make necessary configurations and then run \sname to perform an analysis.
-
-This is the most practical and maybe the most important section, as it explains how to actually use the software.
-
-\subsection{Input parameters}
-    \label{sec:input}
-
-    The input parameters for each run of \sname is configured in an XML file with a predetermined layout.
-    Inside the repository you will find \texttt{/xml/input.xml}. Copy this file, save it together with your dataset, and modify the values of the fields as required for your dataset (do not blindly use the default values).
-
-    Specifically, this is where you provide the filename of the dataset to analyse.
-    If \texttt{input.xml} is in another folder than the dataset you need to write the relative or absolute pathname of the datafile.
-
-    You can save your copy of the XML-file with whatever name you wish, which can be useful to link separate XML-files to specific datasets that are in the same folder, or if you have diffenert sets of parameters that you want to reuse on the same dataset.
-
-    Here follows a detailed description of what all the fields in the input file means.
-
-    \begin{description}
-        \item[unit-mass]
-            Here you state which mass unit you want to use. This unit is interpreted by \texttt{AstroPy}'s Unit-module and it can be almost any mass unit or quantity of units you can think off. The full list of possibilities exists here:
-            \url{http://astropy.readthedocs.org/en/latest/units/#module-astropy.units.si}
-            The most practical unit is often the solar mass, which is written as ``\texttt{solMass}''.
-            You could use ``\texttt{geoMass}'' (Earth's mass) or ``\texttt{1e10 kg}''.
-        \item[unit-distance]
-            Same rules as for unit-mass, but this is your distance unit. Typical units can be ``\texttt{au}'', ``\texttt{11 solRad}'', or ``\texttt{1.7e10 m}''.
-        \item[unit-angle]
-            This is your distance unit. It can be ``\texttt{rad}'', ``\texttt{deg}'', ``\texttt{arcmin}'', ``\texttt{arcsec}''.
-        \item[datafile]
-            The pathname to the dataset to be analysed. The pathname must be relative to where you run the \sname from, f.ex. ``\texttt{data/mydiskdata.dat}'', or it can be an absolute path. It can be an ACII file with 3 columns or a pickle file. If it is ASCII you must also specify if the coordinates are cartesian $(x,y,\rho)$ or polar $(r,\theta,\rho)$. $x,y,r$ will be in the distance unit you chose. $\theta$ (if you use polar coordinates) will be in the angle unit you chose. The density $\rho$ will be scaled to a suitable unit ``behind the scenes'', depending on \texttt{radius\_in}, \texttt{radius\_out}, \texttt{diskradius}, and \texttt{diskmass}.
-        \item[dataname]
-            A name/identifier for the current dataset. This name will be included
-            in the filenames of the output lightcurves and in the title of the
-            plots. If left blank the datafilename will be used instead.
-        \item[resave\_as]
-            If you provide a filename/pathname here the cropped version (according to radius\_in, radius\_out) of the input datafile will be saved. This cropped version of the data can then be used as the input datafile later. This is useful because it can reduce the size of the datafile. Loading millions of lines of data takes a while. If you use ".p" or ".pickle" as filename extension it will be saved as a pickle file. If left blank there will \emph{not} be any saving. If several filenames are provided (separated with spaces) several copies will be made with different names. Usually you will want to resave each of your datasets as a pickle-file once, and after that you should leave this field blank.
-        \item[normalization]
-            How to normalize the output data (lightcurve). There are 3 options, as listed below. You can choose several of them at the same time by writing several words separated by spaces, or you can write ``\texttt{all}''.
-            \begin{description}
-                \item[mean]
-                    Divide each lightcurve with its mean value.
-                \item[max]
-                    Divide each lightcurve with its maximum value.
-                \item[stellar]
-                    Divide each lightcurve with its unobscured stellar value. By that we mean the flux it would have if there was no extinction. This is the only normalization method where we see the relation between the different curves. If some curves are much fainter than others they will appear as $\approx 0$.
-            \end{description}
-
-        \item[system]
-            Write ``\texttt{cartesian}'' if your data is $(x,y,\rho)$ or ``\texttt{polar}'' if your data is $(r,\theta,\rho)$.
-        \item[outfolder]
-            The pathname to the folder to contain the output files. The pathname must be relative to where you run the program from, or it can be an absolute path. If the folder does not already exist it will be created automatically. Inside this folder there will be created 2 more folders: ``plots'' for the plot images and ``csvtables'' for CSV-files for each lightcurve on the format ($\theta$,flux).
-        \item[radius\_in]
-            Define the inner and out radius for where the part of the disk which causes extinction exists. The number you provide will be in the units you decided in unit-distance. The dataset will be cropped to these limits, so it becomes a ``donut''. You can provide several inner and outer radiuses by separating them with spaces it you want to analyse different sized disks at the same time. If radius\_in is left blank it will default to just outside the position of the stars.
-        \item[radius\_out]
-            If radius\_out is left blank it will default to the smallest radius that contains the entire dataset
-        \item[inclination]
-            Which inclinations to analyse the system in. Several inclinations can be separated with spaces. When you provide several inclinations their respective lightcurves will be displayed in the same plot. If no inclinations is provided a default of $90\degree$ (edge-on) will be chosen.
-        \item[diskmass]
-            The total mass of the entire circumstellar/binary disk, including the vast outer parst which doesn't cause extinction. The number you provide will be in the units you decided in unit-mass. A typical value is 0.01 solMass or smaller. This number is used to calculate a density scaling factor. You can provide several diskmasses by separating them with spaces to perform several analysis with different densities.
-        \item[diskradius]
-            The total radius of the entire circumstellar/binary disk, including the vast outer parst which doesn't cause extinction. The number you provide will be in the units you decided in unit-distance. A typical value is 50 AU. This number is used to calculate a density scaling factor.
-        \item[kappa]
-            Opacity constant. $\kappa$ is always provided in units of $cm^2 / g$. A typical value is between 5 and 100.
-        \item[H0]
-            The semi-thickness of the disk. The number you provide will be in the units you decided in unit-distance. $H_0$ determines the density at a distance from the midplane of the disk: 
-            $\rho(x, y, z) = \rho_0(x, y) \cdot \exp\left(- z^2 / H_0^2\right)$.
-            If $H_0$ is small there can be less obstruction at higher inclinations.
-            You can provide several values for $H_0$ by separating them with spaces it you want to analyse different thicknesses.
-        \item[star]
-            The star contains several subfields, which determines the parameters for one particular stars. If you want 2 (or more) stars, copy-paste the entire star section with all its fields and fill in the parameters for each star individually.
-            \begin{description}
-                \item[x,y]
-                    The cartesian position of the star in unit-distance.
-                    Leave $<r,theta>$ blank or delete them entirely if you use these.
-                \item[r, theta]
-                    The polar position of the star in unit-distance and degrees(!).
-                    Leave $<x,y>$ blank or delete them entirely if you use these.
-                \item[radius]
-                    The radius of the star in unit-distance. This determines the radius of the line-of-sight sylinder.
-                \item[intensity]
-                    The intensity of the star. This is entirely unitless, because the lightcurves are always normalized anyway. What matters is only the relative intensity between the stars, if you have several stars.
-            \end{description}
-
-        \item[azimuthsteps]
-            How many different line-of-sights to analyse. This is the resolution of the output lightcurves. $\D \theta = 360\degree / \textrm{azimuthsteps}$. The entire dataset needs to go through a matrix rotation for each azimuthstep, and that is by far the slowest part of the algorithm. It is often wise to choose a low number here first to get a rough idea of what the lightcurves will look like and then increase it to over 100 steps when you want to see fine structures.
-        \item[radiussteps]
-            How many bins to divide the line-of-sight sylinders in. This number should be as high as possible to increase accuracy of the flux integration. If you make density profiles this will determine the resolution. A typical value is 100, but if you have enough datapoints, set it even higher. If you try to use more radius steps than there is datapoints in each sylinder an error will happen.
-    \end{description}
-
-\subsection{Executing the code}
-    When you have prepared your input XML-file with your dataset, type the command \texttt{cirbindis} \\
-    (or \texttt{python \textasciitilde/path\_to\_repository\_folder/circumbinarydisk/src/cirbindis.py})
-    followed by the name of your XML-file in a terminal.
-    F.ex.: \\
-    \texttt{> cirbindis input.xml} \\
-    \texttt{> cirbindis dataA.xml} \\
-    \texttt{> cirbindis dataA\_big.xml} \\
-    \texttt{> cirbindis data/set1.xml} \\
-    \texttt{> python src/cirbindis.py input.xml} (without alias) \\
-    The software will run until it has completed the analysis of your dataset with the parameters you specified, or stop and throw an error message if there is a problem with the configuration.
-
-\subsection{Output}
-    The output after a \sname analysis is a comma-separated-value (csv) file. The output file will be placed in the path you specified in \texttt{input.xml}. The filename contains the value of the parameters $H$, $r_{in}$, $r_{out}$, and inclination ($\phi$), separated by double underscores ``\_\_''. A filename can be f.ex.
-    ``\texttt{H=0.1\_\_r\_in=0.75\_\_r\_out=3\_\_inc=5.csv}''.
-    If you perform several analysis of the same dataset at once, f.ex. by providing several values for $r_{out}$, then one outfile will be produced for each different value of $r_{out}$.
-
-    The first line of the output is a header containing all the physical and numerical parameters for the simulation. There are two columns. The first column lists rotation angles $\theta$ in units of degrees. The second column lists the observed intensities given the respective angles, normalised so the mean intensity is $1$. A output file with \texttt{azimuthsteps=8} can look like this:
-\begin{verbatim*}
-#H=0.1, kappa=10, r_star=0.21-0.19, r_in=0.75, r_out=3, dr=0.75,
-dtheta=45deg, inc=5deg
-0.000000,0.000000
-45.000000,0.000000
-90.000000,0.000000
-135.000000,0.000000
-180.000000,7.644186
-225.000000,0.000000
-270.000000,0.355814
-315.000000,0.000000
-\end{verbatim*}
-
-\subsection{The plotting environment}
-    If you are unfamiliar with the \texttt{matplotlib} plotting environment, I recommend that you have a quick look at the following url: \url{http://matplotlib.org/users/navigation_toolbar.html}
-    Here it is explained how to manipulate the plot, like zooming or changing the axes.
-    You can always save the current state of the plot as png, ps, eps, svg or pdf.
 
 
 
