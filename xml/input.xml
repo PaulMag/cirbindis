@@ -75,13 +75,13 @@
     <!--What do you want to do?
     -->
     <lightcurves>
-        <show_plot>no</show_plot>
-        <save_plot>no</save_plot>
-        <save_csvtable>no</save_csvtable>
+        <show_plot>yes</show_plot>
+        <save_plot>yes</save_plot>
+        <save_csvtable>yes</save_csvtable>
     </lightcurves>
     <densityprofiles>
-        <show_plot>no</show_plot>
-        <save_plot>no</save_plot>
+        <show_plot>yes</show_plot>
+        <save_plot>yes</save_plot>
     </densityprofiles>
 
     <!--==========Disk boundaries============================================-->
