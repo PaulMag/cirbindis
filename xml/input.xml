@@ -72,6 +72,17 @@
         created automatically.
     -->
     <outfolder>results</outfolder>
+    <!--What do you want to do?
+    -->
+    <lightcurves>
+        <show_plot>no</show_plot>
+        <save_plot>no</save_plot>
+        <save_csvtable>no</save_csvtable>
+    </lightcurves>
+    <densityprofiles>
+        <show_plot>no</show_plot>
+        <save_plot>no</save_plot>
+    </densityprofiles>
 
     <!--==========Disk boundaries============================================-->
     <!--Define the inner and out radius for where the disk exists. The
