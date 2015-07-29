@@ -217,6 +217,16 @@ This is the most practical and maybe the most important section, as it explains 
             Write ``\texttt{cartesian}'' if your data is $(x,y,\rho)$ or ``\texttt{polar}'' if your data is $(r,\theta,\rho)$.
         \item[outfolder]
             The pathname to the folder to contain the output files. The pathname must be relative to where you run the program from, or it can be an absolute path. If the folder does not already exist it will be created automatically. Inside this folder there will be created 2 more folders: ``plots'' for the plot images and ``csvtables'' for CSV-files for each lightcurve on the format ($\theta$,flux).
+        \item[lightcurves-show\_plot]
+            yes/no: Do you want to show the interactive Matplotlib plotting interface with the lightcurve plots when the analysis is complete (ee section \vref{sec:matplotlib})? If you want the chance to manipulate the plots before saving them you should do this. Or if you want to see the plots, but not save them, you should do this.
+        \item[lightcurves-save\_plot]
+            yes/no: Do you want to save the lightcurve plots directly as an image file with the default axes and labels, etc. when the analysis is complete?
+        \item[lightcurves-save\_csvtable]
+            yes/no: Do you want to save the actual output lightcurve data as CSV-files? Use this if you f.ex. want to plot the results with another program.
+        \item[densityprofiles-show\_plot]
+            yes/no: Do you want to show the interactive Matplotlib plotting interface with the density profile plots when the analysis is complete? If you have several stars in your model density profiles are only made for the first one by default (first in the input XML-file). Note: One densityprofile subplot will be made for \emph{each} azimuthstep, so when making densityprofiles you should not use a very large number of azimuthsteps. F.ex. 4 or 9 is ok.
+        \item[densityprofiles-save\_plot]
+            yes/no: Do you want to save the lightcurve plots directly as an image file with the default axes and labels, etc. when the analysis is complete?
         \item[radius\_in]
             Define the inner and out radius for where the part of the disk which causes extinction exists. The number you provide will be in the units you decided in unit-distance. The dataset will be cropped to these limits, so it becomes a ``donut''. You can provide several inner and outer radiuses by separating them with spaces it you want to analyse different sized disks at the same time. If radius\_in is left blank it will default to just outside the position of the stars.
         \item[radius\_out]
@@ -287,6 +297,7 @@ dtheta=45deg, inc=5deg
 \end{verbatim*}
 
 \subsection{The plotting environment}
+    \label{sec:matplotlib}
     If you are unfamiliar with the \texttt{matplotlib} plotting environment, I recommend that you have a quick look at the following url: \url{http://matplotlib.org/users/navigation_toolbar.html}
     Here it is explained how to manipulate the plot, like zooming or changing the axes.
     You can always save the current state of the plot as png, ps, eps, svg or pdf.
@@ -305,6 +316,11 @@ dtheta=45deg, inc=5deg
 
 \subsection{Cropping}
     The space covered by the dataset may represent a larger area than the disk you want to analyse. The dataset is cropped to an inner and outer radius such that the shape of the remaining datapoints resembles a donut. The outer radius represents the size of the disk and makes sure that the disk is circular. The inner radius is necessary to avoid treating the stars themselves as dust, and the density of the dust is very low close to the stars anyway.
+
+\subsection{Density scaling}
+    %TODO
+    \textbf{TODO:} \\
+    This section should explain how arbitrary dimensionless input density is converted to physical density units.
 
 \subsection{Rotating}
     \label{sec:rotating}
