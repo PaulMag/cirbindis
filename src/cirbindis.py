@@ -1,4 +1,4 @@
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 import sys
 import numpy as np
@@ -84,7 +84,9 @@ if __name__ == "__main__":
                         radius_out=radius_out,
                         diskmass=diskmass,
                         diskradius=float(input_["diskradius"]),
-                        H=H0,
+                        H0=H0,
+                        R0=float(input_["R0"]),
+                        H_power=float(input_["H_power"]),
                         kappa=float(input_["kappa"]),
                     )
 

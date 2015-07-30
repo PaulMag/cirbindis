@@ -12,6 +12,8 @@
 \usepackage{hyperref} % allows hyperlinks with the \href command
 \usepackage{algorithm}   % for writing pseudocode
 \usepackage{algorithmic} % for writing pseudocode
+\usepackage{xspace}  % for dynamic space in newcommand words
+\usepackage{needspace}
 
 % Set code style:
 \definecolor{darkgreen}{RGB}{0,135,0}
@@ -36,8 +38,9 @@
 \newcommand{\E}[1]{\cdot 10^{#1}}  % exponents, ex: 1.4\E{3} -> 1.4*10^3
 \newcommand{\U}[1]{\, \textrm{#1}} % display units prettily, ex: 15.4\U{m} -> 15.4 m
 \newcommand{\degree}{\, ^\circ}    % make a degree symbol
-\newcommand{\sname}{\texttt{CirBinDis }}
-\newcommand{\sversion}{0.2.1 }
+\newcommand{\sname}{\texttt{CirBinDis}\xspace}
+\newcommand{\sversion}{0.3.0\xspace}
+\newenvironment{bottompar}[1]{\needspace{#1}\par\vspace*{\fill}}{\clearpage}
 
 \newcommand{\bilde}[3]{
     \begin{figure}[htbp]
@@ -65,7 +68,7 @@
 \maketitle
 \tableofcontents
 
-\vfill
+\begin{bottompar}{84pt}
 Contact:
 
 Paul Magnus Sørensen-Clark:
@@ -75,8 +78,7 @@ Jerome Bouvier:
 \href{mailto:jerome.bouvier@obs.ujf-grenoble.fr}{jerome.bouvier@obs.ujf-grenoble.fr}
 
 \url{https://github.com/PaulMag/cirbindis}
-
-\clearpage
+\end{bottompar}
 
 
 %===============================================================================
@@ -240,10 +242,17 @@ This is the most practical and maybe the most important section, as it explains 
         \item[kappa]
             Opacity constant. $\kappa$ is always provided in units of $cm^2 / g$. A typical value is between 5 and 100.
         \item[H0]
-            The semi-thickness of the disk. The number you provide will be in the units you decided in unit-distance. $H_0$ determines the density at a distance from the midplane of the disk:
+            The semi-thickness of the disk at radius $R_0$. The number you provide will be in the units you decided in unit-distance. $H_0$ determines the density at a height from the midplane of the disk:
             $\rho(x, y, z) = \rho_0(x, y) \cdot \exp\left(- z^2 / H_0^2\right)$.
             If $H_0$ is small there can be less obstruction at higher inclinations.
             You can provide several values for $H_0$ by separating them with spaces it you want to analyse different thicknesses.
+        \item[R0]
+            The radius where $H = H_0$. $R_0$ only matters if $H_\textrm{power} \neq 0$. 
+            The number you provide will be in the units you decided in unit-distance.
+        \item[H\_power]
+            $H(R) = H_0 (R/R_0)^{H_\textrm{power}}$ \\
+            $H_\textrm{power} = 0 \Rightarrow$ The disk has uniform thickness. \\
+            $H_\textrm{power} = 1 \Rightarrow$ The thickness is proportional to radius.
         \item[star]
             The star contains several subfields, which determines the parameters for one particular stars. If you want 2 (or more) stars, copy-paste the entire star section with all its fields and fill in the parameters for each star individually.
             \begin{description}
@@ -338,17 +347,17 @@ dtheta=45deg, inc=5deg
     disk rotates we see the stars through different areas of the disk with
     different densities.
 
-    A rotation also happens around the $y$-axis due to the inclination angle $\phi$. $R_y$ is the rotation matrix which would perform this rotation. However, $R_y$ is \emph{not} used, and the $y$-rotation is never performed directly. It is implicitly done in a very different manner, see section \vref{sec:bin_densities}.
+    A rotation also happens around the $y$-axis due to the inclination angle $\phi$. $\phi=90\degree$ means that we see the disk edge-on (this is the unrotated y-state). $R_y$ is the rotation matrix which would perform this rotation. However, $R_y$ is \emph{not} used, and the $y$-rotation is never performed directly. It is implicitly done in a very different manner, see section \vref{sec:bin_densities}.
     $$
     R_y = \begin{bmatrix}
-        \cos(\phi) &          0 & \sin(\phi) \\
-                 0 &          1 &          0 \\
-        \sin(\phi) &          0 & \cos(\phi) \\
+        \cos(90\degree - \phi) &          0 & \sin(90\degree-\phi) \\
+                             0 &          1 &                    0 \\
+        \sin(90\degree - \phi) &          0 & \cos(90\degree-\phi) \\
     \end{bmatrix}
     $$
 
 \subsection{Sylinder}
-    A section of the datapoints are cropped out, which represents only the sylinder of gas that is between an observer on Earth and the star. These are the datapoints that fall within the sylinder whose base area is defined by the stellar surface and which extends from the stellar surface and infinitely along the $x$-axis in positive direction (the de facto limit is the outer radius of the disk). In other words, the observer's position is assumed to be $(\infty, 0, 0)$. A sylinder like this is made once for \emph{each} azimuthal rotation of all the points. Thus, each sylinder will be a little different from the previous one (if $\D\theta$ is small). If there are two (or even more) stars a sylinder will be created for the line of sight of each star, so there can be two (or even more) sylinders at the same time.
+    A section of the datapoints are cropped out, which represents only the sylinder of gas that is between an observer on Earth and the star. These are the datapoints that fall within the sylinder whose base area is defined by the stellar surface and which extends from the stellar surface and infinitely along the $x$-axis in positive direction (the de facto limit is the outer radius of the disk). The sylinder is also inclined with the angle $\phi$. In other words, the observer's position is assumed to be $[d\sin(\phi), 0, d\cos(\phi)]$, where $d\rightarrow\infty$. A sylinder like this is made once for \emph{each} azimuthal rotation of all the points. Thus, each sylinder will be a little different from the previous one (if $\D\theta$ is small). If there are two (or even more) stars a sylinder will be created for the line of sight of each star, so there can be two (or even more) sylinders at the same time.
 
 \subsection{Binning}
 
@@ -375,15 +384,18 @@ dtheta=45deg, inc=5deg
         $$
         All our density datapoints are in the $xy$-plane, so the $x$ and $y$ part of the integral can be evaluated by summing the density of each datapoint $\rho_{0,i}$ multiplied with its respective discrete $\D{x_i}\D{y_i}$. We will assume that the datapoints in the grid is spaced evenly. This is not necessarily true, but it should be approximately true for most cases, especially if the size of the bin is much smaller than the whole dataset. In this case $\D{x_i}$ and $\D{y_i}$ is the same for every datapoint.
 
-        Whe have no data for density variation in the $z$-dicetion. Instead we assume a gaussian decrese of density with increasing distance from the midplane. $\rho(z)$ is the assumed density at a point with altitude $z$ above a point $i$ in the midplane with density $\rho_0$.
+        Whe have no data for density variation in the $z$-direction. Instead we assume a gaussian decrese of density with increasing distance from the midplane. $\rho(z)$ is the assumed density at a point with altitude $z$ above a point $i$ in the midplane with density $\rho_0$.
         $$
         \rho(x_i, y_i, z) = \rho_0(x_i, y_i) \cdot \exp\left(- \frac{z^2}{2H^2}\right)
         $$
-        Thus the mass integral has a discrete part and an analytical part. The limits of the discrete part is the area of the midplane $S_{bin}$ contained in the sylinder and is such that $N_{bin} \D{x_i}\D{y_i} = S_{bin}$. The limits for $z$ are explained in the following subsection.
+        Thus the mass integral has a discrete part and an analytical part. The limits of the discrete part is the edges of the bin in the midplane and is such that $N_{bin} \D{x_i}\D{y_i} = S_{bin}$. We assume that the datapoints within one sylinder bin is evenly spaced such that $\D{x_i}$ and $\D{y_i}$ are the same for all points. This is not always exactly the case, but probably an ok approximation. The limits for $z$ are explained in section \ref{sec:z-limits}.
+
+        The gaussian's integral has no analytical solution, but it can be approximated by the error function (erf), which is a power series. erf is provided in the Python library SciPy (\texttt{scipy.special.erf}) and can handle arrays, which means that this integral can be performed for all the datapoints in the sylinder bin very quickly in a vectorized manner.
         \begin{align*}
             M_{bin}
-                &= \int\int_{S_{bin}} \rho_0(x_i,y_i) \D{x_i}\D{y_i} \cdot
-                    \int_{z_{i,a}}^{z_{i,b}} \exp\left(- \frac{z^2}{2H^2}\right) \D{z} \\
+                &= \int_{-r_{star}}^{r_{star}}\int_{r_{bin}}^{r_{bin} + \Delta r} 
+                    \rho_0(x_i,y_i) \D{x_i}\D{y_i} \cdot
+                    \int_{z_{i,a}}^{z_{i,b}} \exp\left(- \frac{z^2}{2H^2}\right) \D{z_i} \\
                 &= \sum_i \left(
                         \rho_{0,i} \D{x_i}\D{y_i} \cdot
                         \frac{\sqrt{\pi}}{2} \sqrt{2H^2}
@@ -391,27 +403,45 @@ dtheta=45deg, inc=5deg
                             \erf{\frac{z_{i,b}}{\sqrt{2H^2}}} -
                             \erf{\frac{z_{i,a}}{\sqrt{2H^2}}}
                         \right]
-                    \right)
-    %         \rho_{bin,j} &= \frac{M_{bin}}{V_{bin}} \\
-    %             &= \int_{z_{i,a}}^{z_{i,b}} \D{z}
-    %                 \sum_i \rho_{0,i}
-    %                 \frac{\D{x_i}\D{y_i}}{\Delta r_j 2 r_{star} h_i}
+                    \right) \\
+                &= S_{bin} \sum_i \left(
+                        \rho_{0,i} \cdot
+                        \frac{\sqrt{\pi}}{2} \sqrt{2H^2}
+                        \left[
+                            \erf{\frac{z_{i,b}}{\sqrt{2H^2}}} -
+                            \erf{\frac{z_{i,a}}{\sqrt{2H^2}}}
+                        \right]
+                    \right) \\
         \end{align*}
-    %     $\D{x_i}\D{y_i}$ is the surface covered by one dat66apoint and $\Delta r_j 2 r_{star}$ is the surface covered by the entire bin. Multiplying by their ratio is the same as dividing by the total number of points in the bin.
-    %     \begin{align*}
-    %         \rho_{bin,j}
-    %             &= \sum_i \rho_{0,i} \frac{1}{N_{bin,j}} \\
-    %             &= \textrm{mean}(\rho_{0,i})
-    %     \end{align*}
+        \begin{align*}
+            \rho_{bin} &= \frac{M_{bin}}{V_{bin}} \\
+                &= \frac{M_{bin}}{S_{bin} \cdot \sum_i \int_{z_{i,a}}^{z_{i,b}} \D{z_i}} \\
+                &= \frac{
+                    \sum_i \left(
+                        \rho_{0,i} \cdot
+                        \frac{\sqrt{\pi}}{2} \sqrt{2H^2}
+                        \left[
+                            \erf{\frac{z_{i,b}}{\sqrt{2H^2}}} -
+                            \erf{\frac{z_{i,a}}{\sqrt{2H^2}}}
+                        \right]
+                    \right)
+                }{\sum_i \int_{z_{i,a}}^{z_{i,b}} \D{z_i}} \\
+        \end{align*}
+
+        $\rho_{bin}$ is thus the mean density of one bin of the sylinder, and it has a corresponding $\Delta r$. A $\rho_{bin}$, $\Delta r$ pair is calculated for each of the $N_{bin}$ bins in each sylinder.
 
     \subsubsection{The $z$-limits}
-        Each density point is given a weight according to where it is in the sylinder. Points closer to the middle of the sylinder gains larger weight because they represent its fulll height and thus a larger volume than points near the edges. This is illustrated in figure \vref{weight_explanation}.
+        \label{sec:z-limits}
+
+        Each density point is given a weight according to where it is in the sylinder. Points closer to the middle of the sylinder gains larger weight because they represent its fulll height and thus a larger volume than points near the edges. This is illustrated in figure \vref{fig:weight_explanation}.
         $$
-        W_i(y) = \frac{\sqrt{r_{star}^2 - (y_i - y_{star})^2}}{\cos(\phi)}
+        W_i(y) = \frac{\sqrt{r_{star}^2 - (y_i - y_{star})^2}}{\sin(\phi)}
         $$
-        The factor $1/\cos(\phi)$ adjusts the height of the sylinder if it is inclined so that it is always shaped like a circular sylinder.
-        \bilde{figures/weight_explanation}{weight_explanation}
+        The factor $1/\sin(\phi)$ adjusts the radius of the sylinder if it is inclined so that it is always shaped like a circular sylinder. See figure \ref{fig:sylinder_inclined}.
+        \bilde{figures/weight_explanation}{fig:weight_explanation}
         {A cross-section of the sylinder. The figure shows how the limits $z_{i,a}$ and $z_{i,b}$ for each datapoint depend on that point's $y$-component $y_i$. The position of $z_{i,a}$ in the figure is the same as for $z_{i,b}$, but mirrored to the lower half of the circle.}
+        \bilde{figures/sylinder_inclined}{fig:sylinder_inclined}
+        {This is how the sylinder becomes inclined. The base radius (and volume) is the same, but from the line-of-sight point of view it is flattened and no longer spherical. From the point of view of the observer the radius (in one direction only) becomes $\sin(\phi)\cdot\textrm{radius}$.}
 
         To get the density inside the entire area of the slice of the sylinder and the variations in density from different altitudes we integrate the density for each point, projected from the bottom ($z_a$) to the top ($z_b$) of the sylinder. The distance to integrate is $2W_i$ for each point, centered around $z_i$.
         \begin{align*}
@@ -419,25 +449,16 @@ dtheta=45deg, inc=5deg
             z_{i,a} &= z_i - W_i \\
             z_{i,b} &= z_i + W_i
         \end{align*}
-
-%     $\exp(-z^2)$ is the gaussian. It's integral has no analytical solution, but it can be approximated by the error function (erf), which is a power series. erf is provided in the Python library SciPy (\texttt{scipy.special.erf}) and can handle arrays, which means that this integral can be performed for all the datapoints in the sylinder bin very quickly in a vectorized manner.
-%     \begin{align*}
-%         \lambda_i
-%         &= \int_{z_{i,a}}^{z_{i,b}} \rho_0 \exp\left(- \frac{z_i^2}{2H^2}\right) \D{z_i} \\
-%         &= \rho_0 \frac{\sqrt{\pi}}{2} \sqrt{2H^2}
-%         \left[ \erf{\frac{z_{i,b}}{\sqrt{2H^2}}} - \erf{\frac{z_{i,a}}{\sqrt{2H^2}}} \right] \\
-%         \rho_{\, bin} &= \frac{\sum_i \lambda_i}{\sum_i 2W_i}
-%     \end{align*}
-%     $\rho_{bin}$ is thus the mean density of one bin of the sylinder, and it has a corresponding $\Delta r$. A $\rho_{bin}$, $\Delta r$ pair is calculated for each of the $N_{bin}$ bins in each sylinder.
+        (If a star is positioned at origo $x_{star} = y_{star} = 0$, which is typically the case if you have only one star and thus one sylinder.)
 
 
 \subsection{Integrating intensity}
-    For each bin $j$ in each sylinder, from the inside to he outside of the disk, the ratio of intensity transferred from one bin to the next is given by the following expression.
+    For each bin $j$ in each sylinder, from the inside to the outside of the disk, the ratio of intensity transferred from one bin to the next is given by the following expression.
     \begin{align*}
         \tau_j &= \kappa \cdot \rho_{bin,j} \cdot \Delta r_j \\
         I_{j+1} &= I_j \exp(-\tau_j)
     \end{align*}
-    The resulting intensity passed on ny the outermost bin $I_{end}$ is the intensity of the star's radiation that escapes the disk and is observed by the observer on the current line of sight. If there are several stars and thus several sylindres, the total perceived intensity is simply the sum of the $I_{end,k}$ for each sylinder $k$.
+    The resulting intensity passed on to the outermost bin $I_{end}$ is the intensity of the star's radiation that escapes the disk and is observed by the observer on the current line of sight. If there are several stars and thus several sylindres, the total perceived intensity is simply the sum of the $I_{end,k}$ for each sylinder $k$.
     $$
     I_{total} = \sum_k I_{k,end}
     $$

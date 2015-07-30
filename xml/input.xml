@@ -117,6 +117,14 @@
     <diskradius>985</diskradius>  <!--50 AU in current units.-->
     <kappa>10.0</kappa> <!--[cm^2/g].-->
     <H0>0.1</H0>
+    <R0>1.0</R0>
+    <H_power>0</H_power>
+        <!--H/H0 = (R/R0)^H_power
+            This is normally 0 or 1.
+            H_power=0 => disk with uniform thickness
+            H_power=1 => thickness is proportional to radius
+            R0 only matters if H_power is not 0.
+        -->
 
     <!--==========Star parameters============================================-->
     <!--There can be one or more stars with different positions, radiuses
