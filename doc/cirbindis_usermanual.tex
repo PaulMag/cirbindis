@@ -242,10 +242,17 @@ This is the most practical and maybe the most important section, as it explains 
         \item[kappa]
             Opacity constant. $\kappa$ is always provided in units of $cm^2 / g$. A typical value is between 5 and 100.
         \item[H0]
-            The semi-thickness of the disk. The number you provide will be in the units you decided in unit-distance. $H_0$ determines the density at a distance from the midplane of the disk:
+            The semi-thickness of the disk at radius $R_0$. The number you provide will be in the units you decided in unit-distance. $H_0$ determines the density at a height from the midplane of the disk:
             $\rho(x, y, z) = \rho_0(x, y) \cdot \exp\left(- z^2 / H_0^2\right)$.
             If $H_0$ is small there can be less obstruction at higher inclinations.
             You can provide several values for $H_0$ by separating them with spaces it you want to analyse different thicknesses.
+        \item[R0]
+            The radius where $H = H_0$. $R_0$ only matters if $H_\textrm{power} \neq 0$. 
+            The number you provide will be in the units you decided in unit-distance.
+        \item[H\_power]
+            $H(R) = H_0 (R/R_0)^{H_\textrm{power}}$ \\
+            $H_\textrm{power} = 0 \Rightarrow$ The disk has uniform thickness. \\
+            $H_\textrm{power} = 1 \Rightarrow$ The thickness is proportional to radius.
         \item[star]
             The star contains several subfields, which determines the parameters for one particular stars. If you want 2 (or more) stars, copy-paste the entire star section with all its fields and fill in the parameters for each star individually.
             \begin{description}
