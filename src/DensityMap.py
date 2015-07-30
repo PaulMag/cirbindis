@@ -806,6 +806,8 @@ class Sylinder(DensityMap):
                 self.star.radius**2 -
                 (data[start:end, 1] - self.star.position_rotated[1])**2
             ) / np.cos(inclination)
+                # In the docs sin(phi) is used since the opposite inclination
+                # definition is explained.
             z = (
                 (data[start:end, 0] - self.star.position_rotated[0]) *
                 np.tan(inclination)
