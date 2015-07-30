@@ -340,12 +340,12 @@ dtheta=45deg, inc=5deg
     disk rotates we see the stars through different areas of the disk with
     different densities.
 
-    A rotation also happens around the $y$-axis due to the inclination angle $\phi$. $R_y$ is the rotation matrix which would perform this rotation. However, $R_y$ is \emph{not} used, and the $y$-rotation is never performed directly. It is implicitly done in a very different manner, see section \vref{sec:bin_densities}.
+    A rotation also happens around the $y$-axis due to the inclination angle $\phi$. $\phi=90\degree$ means that we see the disk edge-on (this is the unrotated y-state). $R_y$ is the rotation matrix which would perform this rotation. However, $R_y$ is \emph{not} used, and the $y$-rotation is never performed directly. It is implicitly done in a very different manner, see section \vref{sec:bin_densities}.
     $$
     R_y = \begin{bmatrix}
-        \cos(\phi) &          0 & \sin(\phi) \\
-                 0 &          1 &          0 \\
-        \sin(\phi) &          0 & \cos(\phi) \\
+        \cos(90\degree - \phi) &          0 & \sin(90\degree-\phi) \\
+                             0 &          1 &                    0 \\
+        \sin(90\degree - \phi) &          0 & \cos(90\degree-\phi) \\
     \end{bmatrix}
     $$
 
