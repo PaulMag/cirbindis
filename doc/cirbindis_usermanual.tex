@@ -12,6 +12,7 @@
 \usepackage{hyperref} % allows hyperlinks with the \href command
 \usepackage{algorithm}   % for writing pseudocode
 \usepackage{algorithmic} % for writing pseudocode
+\usepackage{xspace}  % for dynamic space in newcommand words
 
 % Set code style:
 \definecolor{darkgreen}{RGB}{0,135,0}
@@ -36,8 +37,8 @@
 \newcommand{\E}[1]{\cdot 10^{#1}}  % exponents, ex: 1.4\E{3} -> 1.4*10^3
 \newcommand{\U}[1]{\, \textrm{#1}} % display units prettily, ex: 15.4\U{m} -> 15.4 m
 \newcommand{\degree}{\, ^\circ}    % make a degree symbol
-\newcommand{\sname}{\texttt{CirBinDis }}
-\newcommand{\sversion}{0.2.1 }
+\newcommand{\sname}{\texttt{CirBinDis}\xspace}
+\newcommand{\sversion}{0.2.1\xspace}
 
 \newcommand{\bilde}[3]{
     \begin{figure}[htbp]
