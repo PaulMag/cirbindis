@@ -466,6 +466,8 @@ class DensityMap:
                 len(inclinations),  # Total no of density profile plots.
             ]
             radius_max = None
+            plotcolors = ("b", "g", "r", "c", "m", "y")
+            plotlinestyles = ('-', '--', '-.', ':')
 
         for i, angle in enumerate(angles):
             print "%6.2f / %g" % (angle, theta)
@@ -495,23 +497,35 @@ class DensityMap:
                     lightcurve[j, i] += sylinder.integrate()
 
                     # Density profile:
-                    if (dprofile_show or dprofile_savefig) and (k == 0):
-                        # Only do for first star.
-                        if i == 0:  # Only initialize axes once:
+                    if (dprofile_show or dprofile_savefig) and (k < 4):
+                        # Only do for maximum 4 stars.
+                        if (i == 0) and (k == 0):  # Only initialize axes once:
                             axes_dprof.append(fig_dprof.add_subplot(
                                 nplots[1],
                                 nplots[0],
                                 j+1,
                             ))
-                        axes_dprof[j].plot(
-                            sylinder.radiuses,
-                            sylinder.densities *
-                                u.Unit(
-                                    u.Unit(self.unit["mass"]) /
-                                    u.Unit(self.unit["distance"])**3
-                                ).to("gram/cm3"),
-                            label="%3g" % angle,
-                        )
+                        if k == 0:
+                            axes_dprof[j].plot(
+                                sylinder.radiuses,
+                                sylinder.densities *
+                                    u.Unit(
+                                        u.Unit(self.unit["mass"]) /
+                                        u.Unit(self.unit["distance"])**3
+                                    ).to("gram/cm3"),
+                                "%s%s" % (plotcolors[i], plotlinestyles[k]),
+                                label="%3g" % angle,
+                            )
+                        else:
+                            axes_dprof[j].plot(
+                                sylinder.radiuses,
+                                sylinder.densities *
+                                    u.Unit(
+                                        u.Unit(self.unit["mass"]) /
+                                        u.Unit(self.unit["distance"])**3
+                                    ).to("gram/cm3"),
+                                "%s%s" % (plotcolors[i], plotlinestyles[k]),
+                            )
                         for l, density in enumerate(sylinder.densities):
                             if density == 0:
                                 if sylinder.radiuses[l] > radius_max:
