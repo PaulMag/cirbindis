@@ -40,7 +40,9 @@ class DensityMap:
         radius_out=np.inf,
         diskmass=.01,
         diskradius=1000.,
-        H=1.,
+        H0=1.,
+        R0=1.,
+        H_power=1.,
         kappa=10.
     ):
 
@@ -66,7 +68,9 @@ class DensityMap:
         self.radius_out = radius_out
         self.diskmass = diskmass
         self.diskradius = diskradius
-        self.H = H
+        self.H0 = H0
+        self.R0 = R0
+        self.H_power = H_power
         self.kappa = kappa  # [cm^2 / g]
             # Between 5 and 100 according to Bouvier et al. 1999.
 
@@ -173,8 +177,8 @@ class DensityMap:
         print "r_out =", r_out
         r_total = u.Quantity(r_total, self.unit["distance"])
         print "r_total =", r_total
-        H = u.Quantity(self.H, self.unit["distance"])
-        print "H =", H
+        H0 = u.Quantity(self.H0, self.unit["distance"])
+        print "H0 =", H0
         mass_total = u.Quantity(mass_total, self.unit["mass"])
         print "mass_total =", mass_total
 
@@ -185,14 +189,14 @@ class DensityMap:
         )
         print "mass_central =", u.Quantity(mass_central, self.unit["mass"])
         rho_central = (
-            mass_central / (np.pi * (r_out**2 - r_in**2) * np.sqrt(np.pi/2)*H)
+            mass_central / (np.pi * (r_out**2 - r_in**2) * np.sqrt(np.pi/2)*H0)
         ).to(u.Unit(self.unit["mass"]) / u.Unit(self.unit["distance"])**3).value
         print "rho_central =", u.Quantity(
             rho_central,
             u.Unit(self.unit["mass"]) / u.Unit(self.unit["distance"])**3,
         )
         rho_central_CGM = (
-            mass_central / (np.pi * (r_out**2 - r_in**2) * np.sqrt(np.pi/2)*H)
+            mass_central / (np.pi * (r_out**2 - r_in**2) * np.sqrt(np.pi/2)*H0)
         ).to(u.Unit("g") / u.Unit("cm")**3).value
         print "rho_central =", u.Quantity(
             rho_central_CGM,
@@ -207,7 +211,7 @@ class DensityMap:
         mask_innercavity = np.linalg.norm(self.data[:, 0:2], axis=1) <= r_innercavity
         data_innercavity = self.data[np.where(mask_innercavity)]
         rho_innercavity = data_innercavity[:, ~0].mean()
-        mass_innercavity = rho_innercavity * (np.pi * (r_innercavity**2 - self.radius_in**2) * np.sqrt(np.pi/2)*self.H)
+        mass_innercavity = rho_innercavity * (np.pi * (r_innercavity**2 - self.radius_in**2) * np.sqrt(np.pi/2)*self.H0)
         print "rho_innercavity r=[r_in,%g] =" % r_innercavity, u.Quantity(
             rho_innercavity,
             u.Unit(self.unit["mass"]) / u.Unit(self.unit["distance"])**3,
@@ -396,7 +400,9 @@ class DensityMap:
 
     def make_lightcurve(self,
         inclinations=None,
-        H=None,
+        H0=None,
+        R0=None,
+        H_power=None,
         n_angle=None,
         dtheta=None,
         theta=None,
@@ -434,8 +440,12 @@ class DensityMap:
         # If the inclination is a single number, put it in a list:
         inclinations = func.to_list(inclinations)
 
-        if H is None:
-            H = self.H
+        if H0 is None:
+            H0 = self.H0
+        if R0 is None:
+            R0 = self.R0
+        if H_power is None:
+            H_power = self.H_power
 
         if n_angle is None:
             n_angle = int(round(float(theta) / dtheta))
@@ -476,7 +486,9 @@ class DensityMap:
                     sylinder.space_sylinder(
                         inclination=inclination,
                         unit=unit,
-                        H=H,
+                        H0=H0,
+                        R0=R0,
+                        H_power=H_power,
                         n_steps=n_radius,
                         dr=dr,
                     )
@@ -610,7 +622,7 @@ class DensityMap:
                     "r_star=%s, flux_star=%s, r_in=%g, r_out=%g, dr=%g, "
                     "dtheta=%g%s, inc=%g%s"
                     % ( self.dataname,
-                        H,
+                        H0,
                         self.kappa,
                         starradius,
                         starflux,
@@ -629,7 +641,7 @@ class DensityMap:
                         "r_in=%g__r_out=%g__"
                         "inc=%02g__%snorm"
                         % ( self.dataname,
-                            H,
+                            H0,
                             self.radius_in,
                             self.radius_out,
                             inclination,
@@ -683,7 +695,7 @@ class DensityMap:
                     "%s__H=%g__"
                     "r_in=%g__r_out=%g__"
                     % ( self.dataname,
-                        H,
+                        H0,
                         self.radius_in,
                         self.radius_out,
                     )
@@ -738,7 +750,9 @@ class Sylinder(DensityMap):
     def space_sylinder(self,
         inclination=90.0,
         unit="deg",
-        H=1.,
+        H0=0.1,
+        R0=1.0,
+        H_power=0,
         n_steps=None,
         dr=None,
         ngridz=12,
@@ -760,7 +774,7 @@ class Sylinder(DensityMap):
         inclination: (float) The angle to incline the line of sight on the
             sylinder.
         deg: (string) Unit of the angle.
-        H: (float) Thickness of the disk. Necessary for integral.
+        H0: (float) Thickness of the disk. Necessary for integral.
         n_steps: (int) How many slices to divide the sylinder in. Affects
             accuracy of integral.
         dr: (float) The width of each sylinder section. Ignored if n_steps
@@ -818,28 +832,30 @@ class Sylinder(DensityMap):
                 end = (i+1)*dpoints
                 drs[i] = data[end, 0] - data[start, 0]
             radiuses[i] = self.radius_in + np.sum(drs[:i]) + drs[i]/2.
-            # Constant g used several times in calculations:
-            if False:
-                g = np.sqrt(2) * H * radiuses[i]  # H(r) depending on radius.
-            else:
-                g = np.sqrt(2) * H  # Constant H.
+
+            H = H0 * (radiuses[i] / R0)**H_power  # H in current bin.
+            g = np.sqrt(2) * H  # Used several times in calculations.
+
             W = np.sqrt(
                 self.star.radius**2 -
                 (data[start:end, 1] - self.star.position_rotated[1])**2
             ) / np.cos(inclination)
+                # In the docs sin(phi) is used since the opposite inclination
+                # definition is explained.
             z = (
                 (data[start:end, 0] - self.star.position_rotated[0]) *
                 np.tan(inclination)
             )
             z1 = z - W
             z2 = z + W
+
             densities[i] = (
                 np.sum(
                     # \int_z1^z2 \rho_0 * e^{- z^2 / (2*H^2)} dz
                     g * data[start:end, ~0] * 0.5 * np.sqrt(np.pi) *
                     (special.erf(z2 / g) - special.erf(z1 / g))
                 ) / (2. * np.sum(W))
-            )
+            ) * H0 / H
 
             z1b = np.maximum(z[:,None] + z1_grid, z1[:,None])
             z2b = np.minimum(z[:,None] + z2_grid, z2[:,None])
