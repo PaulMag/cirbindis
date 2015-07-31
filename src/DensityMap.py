@@ -741,7 +741,7 @@ class Sylinder(DensityMap):
         H=1.,
         n_steps=None,
         dr=None,
-        ngridz=None,
+        ngridz=12,
     ):
         """Bin this sylinder's datapoints into a set of mean densities.
 
@@ -789,7 +789,7 @@ class Sylinder(DensityMap):
         dpoints = int(round(self.data.shape[0] / float(n_steps)))
             # How many datapoints to include in each bin.
 
-        densitygrid = np.zeros((n_steps, ngridz))
+        densitygrids = np.zeros((n_steps, ngridz))
         densities = np.zeros(n_steps)
         drs = np.zeros(n_steps)
         radiuses = np.zeros(n_steps)
@@ -845,33 +845,50 @@ class Sylinder(DensityMap):
             z2b = np.minimum(z[:,None] + z2_grid, z2[:,None])
             mask = z2b - z1b < 0
             z2b[mask] = z1b[mask]
-            densitygrid[i, :] = (
+            densitygrids[i, :] = (
                 np.sum(
                     g * data[start:end, ~0, None] * 0.5 * np.sqrt(np.pi) *
                     (special.erf(z2b / g) - special.erf(z1b / g)),
                     axis=0,
                 ) / (2. * np.sum(z2b - z1b, axis=0))
             )
+        self.densitygrids = densitygrids
         self.densities = densities
         self.drs = drs
         self.radiuses = radiuses
 
 
     def integrate(self):
-        """Integrates the intensity through the layers of dust.
+        """Integrates the flux through the layers of dust.
 
         Assumes that space_sylinder has just been called and used its results.
 
-        return: (float) Perceived intensity outside the disk
+        return: (float) Perceived flux outside the disk
         """
 
         kappa = self.kappa * u.Unit("cm2/gram").to(
             u.Unit(self.unit["distance"])**2 / u.Unit(self.unit["mass"])
         )
-        intensity = self.star.intensity
 
-        for density, dr in zip(self.densities, self.drs):
-            tau = kappa * density * dr
-            intensity *= np.exp(-tau)
+        fluxgrid = np.zeros(self.densitygrids.shape[1])
+        fluxR = np.sqrt(self.star.intensity / np.pi)  # The flux "radius".
+        fluxRs = np.linspace(-fluxR, fluxR, fluxgrid.size+1)
 
-        return intensity
+        def fluxW(fluxr):
+            return np.sqrt(fluxR**2 - fluxr**2)
+
+        # print
+        # print self.star.intensity
+        # print fluxRs
+        for i in xrange(fluxgrid.size):
+            fluxgrid[i] = integrate.quad(fluxW, fluxRs[i], fluxRs[i+1])[0] * 2
+        # print
+
+        # print fluxgrid
+        for densitygrid, dr in zip(self.densitygrids, self.drs):
+            tau = kappa * densitygrid * dr
+            fluxgrid *= np.exp(-tau)
+            # print densitygrid
+            # print fluxgrid
+
+        return fluxgrid.sum()
