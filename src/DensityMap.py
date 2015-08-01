@@ -152,6 +152,13 @@ class DensityMap:
                         data.append(line)
             self.data = np.array(data)
 
+        if self.data.shape[1] != 3:
+            raise IOError(
+                "Your input datafile '%s' has %d columns, but only 3 columns are possible: (x, y, density) or (r, theta, density).\n"
+                "Control the contents of your datafile an make sure it is in the correct format."
+                % (filename, self.data.shape[1])
+            )
+
         infile.close()
         t_end = time.time()  # End of timer.
         print "Loading took %f seconds." % (t_end - t_start)
