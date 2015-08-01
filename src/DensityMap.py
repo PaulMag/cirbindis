@@ -474,6 +474,8 @@ class DensityMap:
                 len(inclinations),  # Total no of density profile plots.
             ]
             radius_max = None
+            density_min = np.inf
+            density_max = None
             plotcolors = ("b", "g", "r", "c", "m", "y")
             plotlinestyles = ('-', '--', '-.', ':')
 
@@ -540,16 +542,24 @@ class DensityMap:
                                 if sylinder.radiuses[l] > radius_max:
                                     radius_max = sylinder.radiuses[l]
                                 break
+                        for l, density in enumerate(sylinder.densities):
+                            if density > density_max:
+                                density_max = density
+                            if density < density_min:
+                                density_min = density
                         axes_dprof[j].set_title("inc=%2g" % inclination)
 
         # Density profile:
+        if density_min == 0:
+            density_min = 1e-30
         if dprofile_show or dprofile_savefig:
             if radius_max is None:
                 radius_max = self.radius_out
+            else:
+                radius_max *= 1.01  # Small buffer.
             for j in range(nplots[2]):  # All subplots.
                 axes_dprof[j].set_xlim([self.radius_in, radius_max])
-                if False:  # Hardcoded switch.
-                    axes_dprof[j].set_ylim([1e-30, 1e-12])
+                axes_dprof[j].set_ylim([density_min, density_max])
                 try:
                     axes_dprof[j].set_yscale("log")  # Does not work if all 0s.
                 except:
