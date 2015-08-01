@@ -400,6 +400,7 @@ class DensityMap:
 
     def make_lightcurve(self,
         inclinations=None,
+        n_gridz=None,
         H0=None,
         R0=None,
         H_power=None,
@@ -492,6 +493,7 @@ class DensityMap:
                         R0=R0,
                         H_power=H_power,
                         n_steps=n_radius,
+                        n_gridz=n_gridz,
                         dr=dr,
                     )
                     lightcurve[j, i] += sylinder.integrate()
@@ -771,7 +773,7 @@ class Sylinder(DensityMap):
         H_power=0,
         n_steps=None,
         dr=None,
-        ngridz=12,
+        n_gridz=None,
     ):
         """Bin this sylinder's datapoints into a set of mean densities.
 
@@ -795,7 +797,11 @@ class Sylinder(DensityMap):
             accuracy of integral.
         dr: (float) The width of each sylinder section. Ignored if n_steps
             is provided.
-
+        n_gridz: (int) How many line-of-sights to divide each sylinder in
+            (in z-direction only).  If H is small compared to the star radius
+            then this number should be larger, to be able to resolve the
+            disk's thickness. This number greatly affects the run time of
+            the code.
         """
 
         if unit == "rad":
@@ -811,25 +817,25 @@ class Sylinder(DensityMap):
             # Convert from standard inclination definition to what is used
             # in these calculations.
 
-        if ngridz is None:
-            ngridz = int(max(min(10. * self.star.radius / H, 10), 2000) + 0.5)
+        if n_gridz is None:
+            n_gridz = int(max(min(4. * self.star.radius / H, 2), 500) + 0.5)
 
         if n_steps is None:
             n_steps = int(round((self.radius_out - self.radius_in) / dr))
         dpoints = int(round(self.data.shape[0] / float(n_steps)))
             # How many datapoints to include in each bin.
 
-        densitygrids = np.zeros((n_steps, ngridz))
+        densitygrids = np.zeros((n_steps, n_gridz))
         densities = np.zeros(n_steps)
         drs = np.zeros(n_steps)
         radiuses = np.zeros(n_steps)
 
         z1_grid = np.linspace(
             -self.star.radius,
-            self.star.radius - 2. * self.star.radius / ngridz,
-            ngridz,
+            self.star.radius - 2. * self.star.radius / n_gridz,
+            n_gridz,
         )
-        z2_grid = z1_grid + 2. * self.star.radius / ngridz
+        z2_grid = z1_grid + 2. * self.star.radius / n_gridz
         z1_grid /= np.cos(inclination)
         z2_grid /= np.cos(inclination)
 
