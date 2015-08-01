@@ -400,6 +400,7 @@ class DensityMap:
 
     def make_lightcurve(self,
         inclinations=None,
+        n_gridz=None,
         H0=None,
         R0=None,
         H_power=None,
@@ -492,6 +493,7 @@ class DensityMap:
                         R0=R0,
                         H_power=H_power,
                         n_steps=n_radius,
+                        n_gridz=n_gridz,
                         dr=dr,
                     )
                     lightcurve[j, i] += sylinder.integrate()
@@ -744,7 +746,8 @@ class Sylinder(DensityMap):
         inclinations=None,
         radius_in=0,
         radius_out=np.inf,
-        kappa=10.
+        kappa=10.,
+        ngrid=7,
     ):
 
         # If the inclination is a single number, put it in a list:
@@ -770,6 +773,7 @@ class Sylinder(DensityMap):
         H_power=0,
         n_steps=None,
         dr=None,
+        n_gridz=None,
     ):
         """Bin this sylinder's datapoints into a set of mean densities.
 
@@ -793,7 +797,11 @@ class Sylinder(DensityMap):
             accuracy of integral.
         dr: (float) The width of each sylinder section. Ignored if n_steps
             is provided.
-
+        n_gridz: (int) How many line-of-sights to divide each sylinder in
+            (in z-direction only).  If H is small compared to the star radius
+            then this number should be larger, to be able to resolve the
+            disk's thickness. This number greatly affects the run time of
+            the code.
         """
 
         if unit == "rad":
@@ -809,14 +817,27 @@ class Sylinder(DensityMap):
             # Convert from standard inclination definition to what is used
             # in these calculations.
 
+        if n_gridz is None:
+            n_gridz = int(max(min(4. * self.star.radius / H, 2), 500) + 0.5)
+
         if n_steps is None:
             n_steps = int(round((self.radius_out - self.radius_in) / dr))
         dpoints = int(round(self.data.shape[0] / float(n_steps)))
             # How many datapoints to include in each bin.
 
+        densitygrids = np.zeros((n_steps, n_gridz))
         densities = np.zeros(n_steps)
         drs = np.zeros(n_steps)
         radiuses = np.zeros(n_steps)
+
+        z1_grid = np.linspace(
+            -self.star.radius,
+            self.star.radius - 2. * self.star.radius / n_gridz,
+            n_gridz,
+        )
+        z2_grid = z1_grid + 2. * self.star.radius / n_gridz
+        z1_grid /= np.cos(inclination)
+        z2_grid /= np.cos(inclination)
 
         data = self.data[np.argsort(self.data[:, 0])]
 
@@ -832,6 +853,11 @@ class Sylinder(DensityMap):
             else:
                 end = (i+1)*dpoints
                 drs[i] = data[end, 0] - data[start, 0]
+            radiuses[i] = self.radius_in + np.sum(drs[:i]) + drs[i]/2.
+
+            H = H0 * (radiuses[i] / R0)**H_power  # H in current bin.
+            g = np.sqrt(2) * H  # Used several times in calculations.
+
             W = np.sqrt(
                 self.star.radius**2 -
                 (data[start:end, 1] - self.star.position_rotated[1])**2
@@ -844,10 +870,6 @@ class Sylinder(DensityMap):
             )
             z1 = z - W
             z2 = z + W
-            radiuses[i] = self.radius_in + np.sum(drs[:i]) + drs[i]/2.
-
-            H = H0 * (radiuses[i] / R0)**H_power  # H in current bin.
-            g = np.sqrt(2) * H  # Used several times in calculations.
 
             densities[i] = (
                 np.sum(
@@ -857,26 +879,54 @@ class Sylinder(DensityMap):
                 ) / (2. * np.sum(W))
             ) * H0 / H
 
+            z1b = np.maximum(z[:,None] + z1_grid, z1[:,None])
+            z2b = np.minimum(z[:,None] + z2_grid, z2[:,None])
+            mask = z2b - z1b < 0
+            z2b[mask] = z1b[mask]
+            densitygrids[i, :] = (
+                np.sum(
+                    g * data[start:end, ~0, None] * 0.5 * np.sqrt(np.pi) *
+                    (special.erf(z2b / g) - special.erf(z1b / g)),
+                    axis=0,
+                ) / (2. * np.sum(z2b - z1b, axis=0))
+            )
+        self.densitygrids = densitygrids
         self.densities = densities
         self.drs = drs
         self.radiuses = radiuses
 
 
     def integrate(self):
-        """Integrates the intensity through the layers of dust.
+        """Integrates the flux through the layers of dust.
 
         Assumes that space_sylinder has just been called and used its results.
 
-        return: (float) Perceived intensity outside the disk
+        return: (float) Perceived flux outside the disk
         """
 
         kappa = self.kappa * u.Unit("cm2/gram").to(
             u.Unit(self.unit["distance"])**2 / u.Unit(self.unit["mass"])
         )
-        intensity = self.star.intensity
 
-        for density, dr in zip(self.densities, self.drs):
-            tau = kappa * density * dr
-            intensity *= np.exp(-tau)
+        fluxgrid = np.zeros(self.densitygrids.shape[1])
+        fluxR = np.sqrt(self.star.intensity / np.pi)  # The flux "radius".
+        fluxRs = np.linspace(-fluxR, fluxR, fluxgrid.size+1)
 
-        return intensity
+        def fluxW(fluxr):
+            return np.sqrt(fluxR**2 - fluxr**2)
+
+        # print
+        # print self.star.intensity
+        # print fluxRs
+        for i in xrange(fluxgrid.size):
+            fluxgrid[i] = integrate.quad(fluxW, fluxRs[i], fluxRs[i+1])[0] * 2
+        # print
+
+        # print fluxgrid
+        for densitygrid, dr in zip(self.densitygrids, self.drs):
+            tau = kappa * densitygrid * dr
+            fluxgrid *= np.exp(-tau)
+            # print densitygrid
+            # print fluxgrid
+
+        return fluxgrid.sum()
