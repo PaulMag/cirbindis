@@ -184,5 +184,11 @@
         dr = (radius_out - radius_in) / radiussteps
     -->
     <radiussteps>10</radiussteps>
+    <!--How many line-of-sights to divide each sylinder in (in z-direction
+        only).  If H is small compared to the star radius then this number
+        should be larger, to be able to resolve the disk's thickness.  This
+        number greatly affects the run time of the code.
+    -->
+    <sylindergridz>10</sylindergridz>
 
 </input>

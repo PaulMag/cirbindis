@@ -1,4 +1,4 @@
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 import sys
 import numpy as np
@@ -106,6 +106,7 @@ if __name__ == "__main__":
                     dataset.make_lightcurve(
                         n_angle=int(input_["azimuthsteps"]),
                         n_radius=int(input_["radiussteps"]),
+                        n_gridz=int(input_["sylindergridz"]),
                         unit=input_["unit"]["angle"],
                         lcurve_show=input_["lightcurves"]["show_plot"],
                         lcurve_savefig=input_["lightcurves"]["save_plot"],

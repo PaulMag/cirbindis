@@ -39,7 +39,7 @@
 \newcommand{\U}[1]{\, \textrm{#1}} % display units prettily, ex: 15.4\U{m} -> 15.4 m
 \newcommand{\degree}{\, ^\circ}    % make a degree symbol
 \newcommand{\sname}{\texttt{CirBinDis}\xspace}
-\newcommand{\sversion}{0.3.0\xspace}
+\newcommand{\sversion}{0.4.0\xspace}
 \newenvironment{bottompar}[1]{\needspace{#1}\par\vspace*{\fill}}{\clearpage}
 
 \newcommand{\bilde}[3]{
@@ -272,6 +272,8 @@ This is the most practical and maybe the most important section, as it explains 
             How many different line-of-sights to analyse. This is the resolution of the output lightcurves. $\D \theta = 360\degree / \textrm{azimuthsteps}$. The entire dataset needs to go through a matrix rotation for each azimuthstep, and that is by far the slowest part of the algorithm. It is often wise to choose a low number here first to get a rough idea of what the lightcurves will look like and then increase it to over 100 steps when you want to see fine structures.
         \item[radiussteps]
             How many bins to divide the line-of-sight sylinders in. This number should be as high as possible to increase accuracy of the flux integration. If you make density profiles this will determine the resolution. A typical value is 100, but if you have enough datapoints, set it even higher. If you try to use more radius steps than there is datapoints in each sylinder an error will happen.
+        \item[sylindergridz]
+            How many line-of-sights to divide each sylinder in (in z-direction only). If H is small compared to the star radius then this number should be larger, to be able to resolve the disk's thickness. This number greatly affects the run time of the code.
     \end{description}
 
 \subsection{Executing the code}
