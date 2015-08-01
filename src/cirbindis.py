@@ -1,4 +1,4 @@
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 import sys
 import numpy as np
@@ -37,6 +37,8 @@ if __name__ == "__main__":
                 "  or\n"
                 "  https://github.com/PaulMag/cirbindis"
             )
+        if sys.argv[1] in ("version", "Version", "-v", "-V", "--version"):
+            print "CirBinDis version %s" % __version__
         sys.exit(1)
     try:
         input_ = xmltodict.parse(infile)["input"]
