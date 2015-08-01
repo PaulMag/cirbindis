@@ -539,6 +539,8 @@ class DensityMap:
                 radius_max = self.radius_out
             for j in range(nplots[2]):  # All subplots.
                 axes_dprof[j].set_xlim([self.radius_in, radius_max])
+                if False:  # Hardcoded switch.
+                    axes_dprof[j].set_ylim([1e-30, 1e-12])
                 try:
                     axes_dprof[j].set_yscale("log")  # Does not work if all 0s.
                 except:
