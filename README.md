@@ -24,7 +24,7 @@ Clone this repository or download the zip-archive. Remember to update.
 
 ### How do I use it? ###
 
-* Have you dataset with <x,y,ρ>- or <r,θ,ρ>-columns.
+* Have you dataset with [x,y,ρ]- or [r,θ,ρ]-columns.
 * Copy and configure 'xml/input.xml' with input parameters.
 * Run 'src/cirbindis.py' (make an alias for this).
 ```
